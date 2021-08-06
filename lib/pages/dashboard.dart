@@ -60,10 +60,9 @@ class _DashboardState extends State<Dashboard>
     return Scaffold(
       key: _scaffoldKey,
       bottomNavigationBar: AnimatedBottomBar(
-          barItems: widget.barItems,
-          tabIndex: _tabIndex,
-          animationDuration: const Duration(milliseconds: 150),
-          onBarTap: (index) {
+          widget.barItems,
+           _tabIndex,
+          (index) {
             setState(() {
               _tabIndex = index;
             });

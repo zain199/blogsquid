@@ -1,88 +1,58 @@
 import 'package:blogsquid/config/app.dart';
+import 'package:blogsquid/utils/providers.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-class AnimatedBottomBar extends StatefulWidget {
+class AnimatedBottomBar extends HookWidget {
   final List<BarItem> barItems;
-  final Duration animationDuration;
   final Function onBarTap;
   final int tabIndex;
-  const AnimatedBottomBar(
-      {Key? key,
-      required this.barItems,
-      this.animationDuration = const Duration(milliseconds: 500),
-      required this.onBarTap,
-      required this.tabIndex})
-      : super(key: key);
-  @override
-  _AnimatedBottomBarState createState() => _AnimatedBottomBarState();
-}
+  const AnimatedBottomBar(this.barItems, this.tabIndex, this.onBarTap);
 
-class _AnimatedBottomBarState extends State<AnimatedBottomBar>
-    with TickerProviderStateMixin {
-  int selectedBarIndex = 0;
   @override
   Widget build(BuildContext context) {
+    final selectedBarIndex = useState(0);
+    final color = useProvider(colorProvider);
     return Material(
       elevation: 0,
-      color: Colors.white,
+      color:color.state == 'dark' ? primaryDark :  Colors.white,
       child: Container(
-       // margin: EdgeInsets.only(left: 20, right: 20, bottom: 20),
-        padding: EdgeInsets.only(left: 20, right: 20, top:10, bottom: 15),
+        // margin: EdgeInsets.only(left: 20, right: 20, bottom: 20),
+        padding: EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 15),
         decoration: BoxDecoration(
-          color: tabBgColor,
-          // boxShadow: [
-          //   BoxShadow(
-          //     color: colorPrimary,
-          //     offset: Offset(0, 0),
-          //     blurRadius: 1,
-          //   ),
-          // ],
+          color: color.state == 'dark' ? Color(0xFF000205) : tabBgColor,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.max,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: _buildBarItems(),
+          children: _buildBarItems(selectedBarIndex, color),
         ),
       ),
     );
   }
 
-  List<Widget> _buildBarItems() {
+  List<Widget> _buildBarItems(selectedBarIndex, color) {
     List<Widget> _barItems = [];
-    for (int i = 0; i < widget.barItems.length; i++) {
-      BarItem item = widget.barItems[i];
-      bool isSelected = widget.tabIndex == i;
+    for (int i = 0; i < barItems.length; i++) {
+      BarItem item = barItems[i];
+      bool isSelected = tabIndex == i;
       _barItems.add(InkWell(
         splashColor: Colors.transparent,
         onTap: () {
-          setState(() {
-            selectedBarIndex = i;
-          });
-          widget.onBarTap(selectedBarIndex);
+          selectedBarIndex.value = i;
+          onBarTap(selectedBarIndex.value);
         },
-        child: AnimatedContainer(
+        child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-          duration: widget.animationDuration,
-          
           child: Row(
             children: <Widget>[
-              // SvgPicture.asset(
-              //   item.iconPath,
-              //   width: isSelected ? 25 : 20,
-              //   color: isSelected ? item.color : Colors.black,
-              // ),
               Container(
-                child: AnimatedSize(
-                  duration: const Duration(milliseconds: 350),
-                  vsync: this,
-                  curve: Curves.easeInOut,
-                  child: SvgPicture.asset(
-                    item.icon,
-                    color: isSelected ? colorPrimary : tabIconColor,
-                    width: isSelected ? item.focusSize : item.theSize,
-                    
-                  ),
+                child: SvgPicture.asset(
+                  item.icon,
+                  color: isSelected ? colorPrimary : color.state == 'dark' ? Color(0xFF8D949F) :  tabIconColor,
+                  width: isSelected ? item.focusSize : item.theSize,
                 ),
               ),
             ],
