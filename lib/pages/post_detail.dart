@@ -25,6 +25,8 @@ class PostDetail extends HookWidget {
   const PostDetail({Key? key, required this.post}) : super(key: key);
   @override
   Widget build(BuildContext context) {
+    final color = useProvider(colorProvider);
+    final dataMode = useProvider(dataSavingModeProvider);
     List cats = post["_embedded"]["wp:term"][0];
     Map author = post["_embedded"]["author"][0];
     DBHelper dbHelper = new DBHelper();
@@ -67,6 +69,7 @@ class PostDetail extends HookWidget {
     }, const []);
     return Scaffold(
       body: Container(
+        color: color.state == 'dark' ? Color(0xFF000205) : Colors.white,
         child: Column(
           children: [
             Container(
@@ -79,7 +82,9 @@ class PostDetail extends HookWidget {
                     onTap: () => Navigator.pop(context),
                     child: SvgPicture.asset(
                       iconsPath + "arrow-left.svg",
-                      color: Color(0xFF282828),
+                      color: color.state == 'dark'
+                          ? Color(0xFFE9E9E9)
+                          : Color(0xFF282828),
                       width: 20,
                     ),
                   ),
@@ -92,7 +97,11 @@ class PostDetail extends HookWidget {
                                 .replaceAll(RegExp(r'<[^>]*>|&[^;]+;'), ''),
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.w500)),
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                                color: color.state == 'dark'
+                                    ? Color(0xFFE9E9E9)
+                                    : Colors.black)),
                       ],
                     ),
                   ),
@@ -114,16 +123,23 @@ class PostDetail extends HookWidget {
                             child: Container(
                                 height: 250,
                                 width: MediaQuery.of(context).size.width,
-                                child: Image.network(
-                                  post["_embedded"]["wp:featuredmedia"][0]
-                                      ["source_url"],
-                                  fit: BoxFit.cover,
-                                )),
+                                child: dataMode.state
+                                    ? Image.asset('assets/images/placeholder-' +
+                                        color.state +
+                                        '.png')
+                                    : Image.network(
+                                        post["_embedded"]["wp:featuredmedia"][0]
+                                            ["source_url"],
+                                        fit: BoxFit.cover,
+                                      )),
                           ),
-                          SizedBox(height: 16),
                           Container(
-                            padding: EdgeInsets.symmetric(horizontal: 20),
+                            padding:
+                                EdgeInsets.only(top: 30, left: 20, right: 20),
                             margin: EdgeInsets.only(bottom: 60),
+                            color: color.state == 'dark'
+                                ? primaryDark
+                                : Colors.white,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -151,7 +167,9 @@ class PostDetail extends HookWidget {
                                   post['title']['rendered'].replaceAll(
                                       RegExp(r'<[^>]*>|&[^;]+;'), ''),
                                   style: TextStyle(
-                                      color: Colors.black,
+                                      color: color.state == 'dark'
+                                          ? Color(0xFFE9E9E9)
+                                          : Colors.black,
                                       fontSize: 22,
                                       fontWeight: FontWeight.w500),
                                 ),
@@ -161,7 +179,9 @@ class PostDetail extends HookWidget {
                                     Text(
                                       'By ${author['name']}',
                                       style: TextStyle(
-                                          color: Color(0xFF222121),
+                                          color: color.state == 'dark'
+                                              ? Color(0xFF525B69)
+                                              : Color(0xFF222121),
                                           fontSize: 14,
                                           decoration: TextDecoration.underline),
                                     ),
@@ -171,7 +191,9 @@ class PostDetail extends HookWidget {
                                         Jiffy(post['date'])
                                             .format("MMMM do, yyyy"),
                                         style: TextStyle(
-                                            color: Color(0xFF242424),
+                                            color: color.state == 'dark'
+                                                ? Color(0xFF525B69)
+                                                : Color(0xFF242424),
                                             fontSize: 14),
                                       ),
                                     ),
@@ -185,7 +207,9 @@ class PostDetail extends HookWidget {
                                             )
                                           : SvgPicture.asset(
                                               iconsPath + "bookmark.svg",
-                                              color: Colors.black,
+                                              color: color.state == 'dark'
+                                                  ? Color(0xFF525B69)
+                                                  : Colors.black,
                                               width: 20,
                                             ),
                                     ),
@@ -194,7 +218,9 @@ class PostDetail extends HookWidget {
                                       onTap: () => sharePost(),
                                       child: SvgPicture.asset(
                                         iconsPath + "share.svg",
-                                        color: Colors.black,
+                                        color: color.state == 'dark'
+                                            ? Color(0xFF525B69)
+                                            : Colors.black,
                                         width: 20,
                                       ),
                                     )
@@ -207,7 +233,9 @@ class PostDetail extends HookWidget {
                                     "html": Style(
                                         lineHeight: LineHeight.em(1.6),
                                         fontSize: FontSize.large,
-                                        color: Color(0xFF464646)),
+                                        color: color.state == 'dark'
+                                            ? Color(0xFF8D949F)
+                                            : Color(0xFF464646)),
                                     "body": Style(margin: EdgeInsets.zero),
                                     "a": Style(color: colorPrimary),
                                   },
@@ -215,7 +243,11 @@ class PostDetail extends HookWidget {
                                     networkSourceMatcher(
                                             domains: ["flutter.dev"]):
                                         (context, attributes, element) {
-                                      return FlutterLogo(size: 36);
+                                      return Image.asset(
+                                          'assets/images/placeholder-' +
+                                              color.state +
+                                              '.png',
+                                          width: 200);
                                     },
                                     networkSourceMatcher(
                                             domains: ["mydomain.com"]):
@@ -234,7 +266,12 @@ class PostDetail extends HookWidget {
                                                 url!),
                                     // Custom placeholder image for broken links
                                     networkSourceMatcher(): networkImageRender(
-                                        altWidget: (_) => FlutterLogo()),
+                                        altWidget: (_) => Image.asset(
+                                              'assets/images/placeholder-' +
+                                                  color.state +
+                                                  '.png',
+                                              width: 200,
+                                            )),
                                   },
                                   onLinkTap: (url, _, __, ___) {
                                     print("Opening $url...");
@@ -263,11 +300,17 @@ class PostDetail extends HookWidget {
                             height: 60,
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
-                                colors: [
-                                  Colors.white.withOpacity(0.92),
-                                  Colors.white,
-                                  Colors.white
-                                ],
+                                colors: color.state == 'dark'
+                                    ? [
+                                        Color(0xFF000205).withOpacity(0.92),
+                                        Color(0xFF000205),
+                                        Color(0xFF000205)
+                                      ]
+                                    : [
+                                        Colors.white.withOpacity(0.92),
+                                        Colors.white,
+                                        Colors.white
+                                      ],
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
                               ),
@@ -279,9 +322,14 @@ class PostDetail extends HookWidget {
                                   "View Comments",
                                   style: TextStyle(
                                       fontWeight: FontWeight.w600,
-                                      color: Colors.black),
+                                      color: color.state == 'dark'
+                                          ? Colors.white.withOpacity(0.7)
+                                          : Colors.black),
                                 ),
-                                Icon(Icons.arrow_right)
+                                Icon(Icons.arrow_right,
+                                    color: color.state == 'dark'
+                                        ? Colors.white.withOpacity(0.7)
+                                        : Colors.black)
                               ],
                             )),
                       ),
@@ -303,6 +351,7 @@ class CommentsWidget extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    final color = useProvider(colorProvider);
     final loading = useState(true);
     final loadingError = useState(true);
     final loadingMore = useState(false);
@@ -449,14 +498,19 @@ class CommentsWidget extends HookWidget {
     }, const []);
 
     return Container(
-      color: Colors.white,
+      color: color.state == 'dark' ? primaryDark : Colors.white,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
             padding: EdgeInsets.only(left: 35.0, top: 40, bottom: 15),
             child: Text("Comments",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                    color: color.state == 'dark'
+                        ? Color(0xFFE9E9E9)
+                        : Colors.black)),
           ),
           loading.value && comments.value.length == 0
               ? Expanded(
@@ -561,6 +615,7 @@ class WriteCommentWidget extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    final color = useProvider(colorProvider);
     final account = useProvider(accountProvider);
     final messageInput = useTextEditingController();
     final nameInput = useTextEditingController();
@@ -595,7 +650,11 @@ class WriteCommentWidget extends HookWidget {
         child: Container(
           //margin: EdgeInsets.symmetric(horizontal: 10),
           decoration: BoxDecoration(
-              color: Colors.white,
+              color: color.state == 'dark' ? primaryDark : Colors.white,
+              border: Border.all(
+                  color: color.state == 'dark'
+                      ? Colors.white.withOpacity(0.4)
+                      : Colors.transparent),
               borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(5), topRight: Radius.circular(5))),
           child: Column(
@@ -604,8 +663,12 @@ class WriteCommentWidget extends HookWidget {
               Padding(
                 padding: EdgeInsets.only(left: 20.0, top: 20),
                 child: Text("Write Comment",
-                    style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                        color: color.state == 'dark'
+                            ? Color(0xFFE9E9E9)
+                            : Colors.black)),
               ),
               Padding(
                 padding: const EdgeInsets.all(20.0),
@@ -613,7 +676,9 @@ class WriteCommentWidget extends HookWidget {
                   children: [
                     Container(
                       decoration: BoxDecoration(
-                          color: Color(0xFFFBFBFB),
+                          color: color.state == 'dark'
+                              ? Color(0xFFFBFBFB).withOpacity(0.4)
+                              : Color(0xFFFBFBFB),
                           borderRadius: BorderRadius.circular(5),
                           border: Border.all(
                               color: focusedMessage.value
@@ -685,7 +750,9 @@ class WriteCommentWidget extends HookWidget {
                             children: [
                               Container(
                                 decoration: BoxDecoration(
-                                    color: Color(0xFFFBFBFB),
+                                    color: color.state == 'dark'
+                                        ? Color(0xFFFBFBFB).withOpacity(0.4)
+                                        : Color(0xFFFBFBFB),
                                     borderRadius: BorderRadius.circular(5),
                                     border: Border.all(
                                         color: focusedName.value
@@ -714,7 +781,9 @@ class WriteCommentWidget extends HookWidget {
                               SizedBox(height: 12),
                               Container(
                                 decoration: BoxDecoration(
-                                    color: Color(0xFFFBFBFB),
+                                    color: color.state == 'dark'
+                                        ? Color(0xFFFBFBFB).withOpacity(0.4)
+                                        : Color(0xFFFBFBFB),
                                     borderRadius: BorderRadius.circular(5),
                                     border: Border.all(
                                         color: focusedEmail.value
@@ -791,18 +860,21 @@ class WriteCommentWidget extends HookWidget {
   }
 }
 
-class EachComment extends StatelessWidget {
+class EachComment extends HookWidget {
   final Color background;
   final Map comment;
   const EachComment(this.background, this.comment);
 
   @override
   Widget build(BuildContext context) {
+    final color = useProvider(colorProvider);
+
     return Container(
         margin: EdgeInsets.only(left: 20, right: 20, bottom: 15),
         padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
         decoration: BoxDecoration(
-            color: Color(0xFFF7F7F7), borderRadius: BorderRadius.circular(5)),
+            color: color.state == 'dark' ? eachPostBgDark : Color(0xFFF7F7F7),
+            borderRadius: BorderRadius.circular(5)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -826,7 +898,11 @@ class EachComment extends StatelessWidget {
             Text(
               comment['content']['rendered']
                   .replaceAll(RegExp(r'<[^>]*>|&[^;]+;'), ''),
-              style: TextStyle(color: Colors.black, fontSize: 16, height: 1.5),
+              style: TextStyle(
+                  color:
+                      color.state == 'dark' ? Color(0xFF8D949F) : Colors.black,
+                  fontSize: 16,
+                  height: 1.5),
             ),
           ],
         ));

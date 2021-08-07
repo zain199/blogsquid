@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.blogsquid">
    <application
-        android:label="blogsquid"
+        android:label="Blogsquid"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"

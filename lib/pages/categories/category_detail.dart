@@ -5,16 +5,19 @@ import 'package:blogsquid/components/network_error.dart';
 import 'package:blogsquid/config/app.dart';
 import 'package:blogsquid/pages/posts/each_post.dart';
 import 'package:blogsquid/utils/network.dart';
+import 'package:blogsquid/utils/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 class CategoryDetail extends HookWidget {
   final Map category;
   const CategoryDetail({Key? key, required this.category}) : super(key: key);
   @override
   Widget build(BuildContext context) {
+    final color = useProvider(colorProvider);
     final loading = useState(true);
     final loadingError = useState(true);
     final loadingMore = useState(false);
@@ -80,20 +83,24 @@ class CategoryDetail extends HookWidget {
 
     return Scaffold(
       body: Container(
-        color: Colors.white,
+        color: color.state == 'dark' ? primaryDark : Colors.white,
         padding: EdgeInsets.only(top: 50),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                SizedBox(width: 20),
                 InkWell(
                   onTap: () => Navigator.pop(context),
-                  child: SvgPicture.asset(
-                    iconsPath + "arrow-left.svg",
-                    color: Color(0xFF282828),
-                    width: 20,
+                  child: Container(
+                    margin: EdgeInsets.only(left: 20),
+                    child: SvgPicture.asset(
+                      iconsPath + "arrow-left.svg",
+                      color: color.state == 'dark'
+                          ? Color(0xFFE9E9E9)
+                          : Color(0xFF282828),
+                      width: 20,
+                    ),
                   ),
                 ),
                 Expanded(
@@ -102,7 +109,11 @@ class CategoryDetail extends HookWidget {
                     children: [
                       Text(category['name'],
                           style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.w500)),
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                              color: color.state == 'dark'
+                                  ? Color(0xFFE9E9E9)
+                                  : Colors.black)),
                     ],
                   ),
                 ),
@@ -150,11 +161,15 @@ class CategoryDetail extends HookWidget {
                                       ...detailposts.value
                                           .asMap()
                                           .entries
-                                          .map((each) => EachPost(
-                                              background: each.key % 2 == 0
-                                                  ? eachPostBg
-                                                  : eachPostBgLow,
-                                              post: each.value))
+                                          .map((post) => EachPost(
+                                              background: post.key % 2 == 0
+                                                  ? (color.state == 'dark'
+                                                      ? eachPostBgDark
+                                                      : eachPostBg)
+                                                  : (color.state == 'dark'
+                                                      ? eachPostBgLowDark
+                                                      : eachPostBgLow),
+                                              post: post.value))
                                           .toList(),
                                       loadingMore.value
                                           ? Container(

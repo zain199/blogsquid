@@ -1,20 +1,20 @@
 import 'package:blogsquid/config/app.dart';
+import 'package:blogsquid/utils/providers.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-class EmptyError extends StatefulWidget {
+class EmptyError extends HookWidget {
   final Function loadData;
   final String message;
 
-  const EmptyError({Key? key, required this.loadData, required this.message})
-      : super(key: key);
-  @override
-  _EmptyErrorState createState() => _EmptyErrorState();
-}
+  EmptyError({required this.loadData, required this.message});
 
-class _EmptyErrorState extends State<EmptyError> {
   @override
   Widget build(BuildContext context) {
+    final color = useProvider(colorProvider);
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -22,7 +22,7 @@ class _EmptyErrorState extends State<EmptyError> {
           SvgPicture.asset(
             iconsPath + 'exclamation-circle.svg',
             height: 60,
-            color: Colors.black38,
+            color: color.state == 'dark' ? primaryText : Colors.black38,
           ),
           SizedBox(
             height: 20,
@@ -30,7 +30,7 @@ class _EmptyErrorState extends State<EmptyError> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text("${widget.message}",
+              Text("$message",
                   style: TextStyle(
                       fontSize: 14,
                       color: primaryText,
@@ -39,11 +39,12 @@ class _EmptyErrorState extends State<EmptyError> {
                 width: 5,
               ),
               InkWell(
-                onTap: () => widget.loadData(),
+                onTap: () => loadData(),
                 child: Text("Tap to retry",
                     style: TextStyle(
                         fontSize: 14,
-                        color: Colors.black,
+                        color:
+                            color.state == 'dark' ? colorPrimary : Colors.black,
                         fontWeight: FontWeight.w800)),
               ),
             ],

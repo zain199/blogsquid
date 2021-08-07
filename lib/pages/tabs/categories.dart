@@ -17,6 +17,7 @@ class Categories extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final categories = useProvider(categoryProvider);
+    final color = useProvider(colorProvider);
     final loading = useState(true);
     final loadingError = useState(true);
     final loadingMore = useState(false);
@@ -52,13 +53,18 @@ class Categories extends HookWidget {
     }, const []);
     return Scaffold(
       body: Container(
-        color: Colors.white,
+        color: color.state == 'dark' ? primaryDark : Colors.white,
         padding: EdgeInsets.only(top: 50, left: 20, right: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text("Categories",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                    color: color.state == 'dark'
+                        ? Color(0xFFE9E9E9)
+                        : Colors.black)),
             SizedBox(height: 20),
             loading.value && categories.state.length == 0
                 ? Container(
@@ -84,19 +90,21 @@ class Categories extends HookWidget {
                                       left: 20, top: 10, bottom: 10),
                                   margin: EdgeInsets.only(bottom: 20),
                                   decoration: BoxDecoration(
-                                      color: Color(0xFFF8F8F8),
+                                      color: color.state == 'dark'
+                                          ? eachPostBgDark
+                                          : Color(0xFFF8F8F8),
                                       borderRadius: BorderRadius.circular(4)),
                                   child: Column(
                                       children: categories.state
                                           .asMap()
                                           .entries
                                           .map((category) => EachCategory(
-                                              category: category.value,
-                                              bordered:
-                                                  categories.state.length <=
-                                                          category.key + 1
-                                                      ? false
-                                                      : true))
+                                              category.value,
+                                              categories.state.length <=
+                                                      category.key + 1
+                                                  ? false
+                                                  : true,
+                                              color))
                                           .toList()),
                                 ),
                               ),
@@ -116,14 +124,11 @@ class Categories extends HookWidget {
   }
 }
 
-class EachCategory extends StatelessWidget {
+class EachCategory extends HookWidget {
   final bool bordered;
   final Map category;
-  const EachCategory({
-    Key? key,
-    this.bordered = true,
-    required this.category,
-  }) : super(key: key);
+  final StateController<String> color;
+  EachCategory(this.category, this.bordered, this.color);
 
   @override
   Widget build(BuildContext context) {
@@ -139,18 +144,26 @@ class EachCategory extends StatelessWidget {
                 bottom: BorderSide(
                     width: 1,
                     color: this.bordered
-                        ? Color(0xFFEDEDED).withOpacity(0.7)
+                        ?  color.state == 'dark'
+                      ? primaryDark.withOpacity(0.2)
+                      : Color(0xFFEDEDED).withOpacity(0.7)
                         : Colors.transparent))),
         child: Row(
           children: [
             Expanded(
                 child: Text(
               category['name'],
-              style: TextStyle(fontSize: 18, color: Color(0xFF282828)),
+              style: TextStyle(
+                  fontSize: 18,
+                  color: color.state == 'dark'
+                      ? Color(0xFF8D949F)
+                      : Color(0xFF282828)),
             )),
             SvgPicture.asset(
               iconsPath + "cheveron-right.svg",
-              color: Color(0xFF282828),
+              color: color.state == 'dark'
+                      ? Color(0xFF8D949F)
+                      : Color(0xFF282828),
               width: 20,
             )
           ],

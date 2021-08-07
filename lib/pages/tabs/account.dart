@@ -29,8 +29,12 @@ class Account extends HookWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text("Account",
-                    style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                        color: color.state == 'dark'
+                            ? Color(0xFFE9E9E9)
+                            : Colors.black)),
               ],
             ),
             SizedBox(height: 20),
@@ -46,6 +50,7 @@ class Account extends HookWidget {
                               side: "left",
                               icon: "chart-pie.svg",
                               title: "Color Preference",
+                              color: color,
                               action: () => showMaterialModalBottomSheet(
                                   context: context,
                                   builder: (context) => ColorModal())),
@@ -53,6 +58,7 @@ class Account extends HookWidget {
                               side: "right",
                               icon: "cog.svg",
                               title: "Configurations",
+                              color: color,
                               bordered: false,
                               action: () => showMaterialModalBottomSheet(
                                   context: context,
@@ -65,13 +71,19 @@ class Account extends HookWidget {
                       padding: EdgeInsets.only(left: 20.0),
                       child: Text("Pages",
                           style: TextStyle(
-                              fontSize: 17, fontWeight: FontWeight.w500)),
+                              fontSize: 17,
+                              fontWeight: FontWeight.w500,
+                              color: color.state == 'dark'
+                                  ? Color(0xFFE9E9E9).withOpacity(0.7)
+                                  : Colors.black)),
                     ),
                     SizedBox(height: 15),
                     Container(
                       padding: EdgeInsets.only(left: 20, top: 10, bottom: 10),
                       decoration: BoxDecoration(
-                          color: Color(0xFFF8F8F8),
+                          color: color.state == 'dark'
+                              ? eachPostBgDark
+                              : Color(0xFFF8F8F8),
                           borderRadius: BorderRadius.circular(4)),
                       child: Column(
                         children: [
@@ -115,14 +127,15 @@ class EachTop extends StatelessWidget {
   final String title, side, icon;
   final bool bordered;
   final Function action;
+  final StateNotifier color;
   const EachTop({
-    Key? key,
     this.title = "",
     this.bordered = true,
     required this.action,
     required this.side,
     required this.icon,
-  }) : super(key: key);
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -134,7 +147,7 @@ class EachTop extends StatelessWidget {
           margin: EdgeInsets.only(
               left: side == 'left' ? 0 : 5, right: side == 'left' ? 5 : 0),
           decoration: BoxDecoration(
-              color: Color(0xFFF8F8F8),
+              color: color.state == 'dark' ? eachPostBgDark : Color(0xFFF8F8F8),
               borderRadius: BorderRadius.circular(4),
               border: Border.all(color: Color(0xFFEDEDED).withOpacity(0.7))),
           child: Column(
@@ -142,13 +155,19 @@ class EachTop extends StatelessWidget {
             children: [
               SvgPicture.asset(
                 iconsPath + icon,
-                color: Color(0xFF282828),
+                color: color.state == 'dark'
+                    ? Color(0xFF8D949F)
+                    : Color(0xFF282828),
                 width: 35,
               ),
               SizedBox(height: 15),
               Text(
                 title,
-                style: TextStyle(fontSize: 16, color: Color(0xFF282828)),
+                style: TextStyle(
+                    fontSize: 16,
+                    color: color.state == 'dark'
+                        ? Color(0xFF8D949F)
+                        : Color(0xFF282828)),
               ),
             ],
           )),
@@ -311,7 +330,7 @@ class ColorModal extends HookWidget {
   }
 }
 
-class EachMenu extends StatelessWidget {
+class EachMenu extends HookWidget {
   final String title;
   final bool bordered;
   final Function action;
@@ -324,6 +343,7 @@ class EachMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final color = useProvider(colorProvider);
     return InkWell(
       onTap: () => action(),
       child: Container(
@@ -333,18 +353,25 @@ class EachMenu extends StatelessWidget {
                 bottom: BorderSide(
                     width: 1,
                     color: this.bordered
-                        ? Color(0xFFEDEDED).withOpacity(0.7)
+                        ? color.state == 'dark'
+                            ? primaryDark.withOpacity(0.2)
+                            : Color(0xFFEDEDED).withOpacity(0.7)
                         : Colors.transparent))),
         child: Row(
           children: [
             Expanded(
                 child: Text(
               title,
-              style: TextStyle(fontSize: 16, color: Color(0xFF282828)),
+              style: TextStyle(
+                  fontSize: 16,
+                  color: color.state == 'dark'
+                      ? Color(0xFF8D949F)
+                      : Color(0xFF282828)),
             )),
             SvgPicture.asset(
               iconsPath + "cheveron-right.svg",
-              color: Color(0xFF282828),
+              color:
+                  color.state == 'dark' ? Color(0xFF8D949F) : Color(0xFF282828),
               width: 20,
             )
           ],

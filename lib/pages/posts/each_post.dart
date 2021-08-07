@@ -3,7 +3,6 @@ import 'package:blogsquid/utils/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:html/parser.dart' show parse;
 import 'package:jiffy/jiffy.dart';
 
 import '../post_detail.dart';
@@ -11,7 +10,7 @@ import '../post_detail.dart';
 class EachPost extends HookWidget {
   final Color background;
   final Map post;
-  const EachPost({
+  EachPost({
     Key? key,
     this.background = eachPostBg,
     required this.post,
@@ -19,6 +18,7 @@ class EachPost extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    final dataMode = useProvider(dataSavingModeProvider);
     final color = useProvider(colorProvider);
     return InkWell(
       onTap: () => {
@@ -41,9 +41,14 @@ class EachPost extends HookWidget {
                     borderRadius: BorderRadius.circular(5),
                     image: DecorationImage(
                       fit: BoxFit.cover,
-                      image: Image.network(post["_embedded"]["wp:featuredmedia"]
-                              [0]["source_url"])
-                          .image,
+                      image: dataMode.state
+                          ? Image.asset('assets/images/placeholder-' +
+                                  color.state +
+                                  '.png')
+                              .image
+                          : Image.network(post["_embedded"]["wp:featuredmedia"]
+                                  [0]["source_url"])
+                              .image,
                     )),
               ),
             ),
@@ -79,9 +84,11 @@ class EachPost extends HookWidget {
                     SizedBox(height: 10),
                     Text(
                       Jiffy(post['date'], "yyyy-MM-dd").fromNow(),
-                      style: TextStyle(color:color.state == 'dark'
+                      style: TextStyle(
+                          color: color.state == 'dark'
                               ? Color(0xFF525B69)
-                              :  Colors.black, fontSize: 13),
+                              : Colors.black,
+                          fontSize: 13),
                     ),
                   ],
                 ),

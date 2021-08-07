@@ -1,20 +1,19 @@
 import 'package:blogsquid/config/app.dart';
+import 'package:blogsquid/utils/providers.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-class NetworkError extends StatefulWidget {
+class NetworkError extends HookWidget {
   final Function loadData;
   final String message;
 
-  const NetworkError({Key? key, required this.loadData, required this.message})
-      : super(key: key);
-  @override
-  _NetworkErrorState createState() => _NetworkErrorState();
-}
+  const NetworkError({required this.loadData, required this.message});
 
-class _NetworkErrorState extends State<NetworkError> {
   @override
   Widget build(BuildContext context) {
+    final color = useProvider(colorProvider);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -22,7 +21,7 @@ class _NetworkErrorState extends State<NetworkError> {
           SvgPicture.asset(
             iconsPath + 'status-offline.svg',
             height: 60,
-            color: Colors.black38,
+            color: color.state == 'dark' ? primaryText : Colors.black38,
           ),
           SizedBox(
             height: 20,
@@ -30,7 +29,7 @@ class _NetworkErrorState extends State<NetworkError> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text("${widget.message}",
+              Text("$message",
                   style: TextStyle(
                       fontSize: 14,
                       color: primaryText,
@@ -39,10 +38,13 @@ class _NetworkErrorState extends State<NetworkError> {
                 width: 5,
               ),
               InkWell(
-                onTap: () => widget.loadData(),
+                onTap: () => loadData(),
                 child: Text("Tap to retry",
-                    style:
-                        TextStyle(fontSize: 14, color: Colors.black, fontWeight: FontWeight.w800)),
+                    style: TextStyle(
+                        fontSize: 14,
+                        color:
+                            color.state == 'dark' ? colorPrimary : Colors.black,
+                        fontWeight: FontWeight.w800)),
               ),
             ],
           ),

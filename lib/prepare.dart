@@ -7,6 +7,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'components/logo.dart';
+import 'config/app.dart';
 import 'pages/dashboard.dart';
 
 class Prepare extends HookWidget {
@@ -57,12 +58,15 @@ class Prepare extends HookWidget {
     }, const []);
 
     return Scaffold(
-      body: Center(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            LogoWidget(24, ""),
-          ],
+      body: Container(
+        color: Colors.black,
+        child: Center(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              LogoWidget(24, "dark"),
+            ],
+          ),
         ),
       ),
     );

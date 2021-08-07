@@ -14,6 +14,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:jiffy/jiffy.dart';
@@ -38,6 +39,7 @@ class Home extends HookWidget {
     final posts = useProvider(postsProvider);
     final latestposts = useProvider(latestpostsProvider);
     final categories = useProvider(categoryProvider);
+    final offlineMode = useProvider(offlineModeProvider);
     final color = useProvider(colorProvider);
     final loading = useState(true);
     final loadingCategories = useState(true);
@@ -66,68 +68,103 @@ class Home extends HookWidget {
     }
 
     void getPosts() async {
-      try {
-        loading.value = true;
-        loadingError.value = false;
-        isLoadMoreDone.value = false;
-        page.value = 1;
-        var path = filter.value['id'] == 0
-            ? "/posts?_embed&per_page=20&page=" + page.value.toString()
-            : '/posts?_embed&per_page=20&page=' +
-                page.value.toString() +
-                '&categories=' +
-                filter.value['id'].toString();
-        var response = await Network().simpleGet(path);
-        var body = json.decode(response.body);
-        loading.value = false;
-        if (response.statusCode == 200) {
-          posts.state = body;
-          if (filter.value['id'] == 0) {
-            latestposts.state = posts.state;
-            var box = await Hive.openBox('appBox');
-            box.put('posts', json.encode(posts.state));
-          }
-        } else {
-          loadingError.value = true;
-        }
-        getCategories();
-      } catch (e) {
+      if (offlineMode.state && posts.state.length > 0) {
+        Fluttertoast.showToast(
+            msg: "You are currently in offline mode",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.CENTER,
+            timeInSecForIosWeb: 1,
+            backgroundColor: colorPrimary,
+            textColor: Colors.white,
+            fontSize: 16.0);
+
         loading.value = false;
         loadingError.value = true;
-        print(e);
+      } else {
+        try {
+          loading.value = true;
+          loadingError.value = false;
+          isLoadMoreDone.value = false;
+          page.value = 1;
+          var path = filter.value['id'] == 0
+              ? "/posts?_embed&per_page=20&page=" + page.value.toString()
+              : '/posts?_embed&per_page=20&page=' +
+                  page.value.toString() +
+                  '&categories=' +
+                  filter.value['id'].toString();
+          var response = await Network().simpleGet(path);
+          var body = json.decode(response.body);
+          loading.value = false;
+          if (response.statusCode == 200) {
+            posts.state = body;
+            if (filter.value['id'] == 0) {
+              latestposts.state = posts.state;
+              var box = await Hive.openBox('appBox');
+              box.put('posts', json.encode(posts.state));
+            }
+          } else {
+            loadingError.value = true;
+          }
+          getCategories();
+        } catch (e) {
+          loading.value = false;
+          loadingError.value = true;
+          print(e);
+        }
       }
     }
 
     void loadMore() async {
-      try {
-        loadingMore.value = true;
-        page.value++;
-        var path = filter.value['id'] == 0
-            ? "/posts?_embed&per_page=20&page=" + page.value.toString()
-            : '/posts?_embed&per_page=20&page=' +
-                page.value.toString() +
-                '&categories=' +
-                filter.value['id'].toString();
-        var response = await Network().simpleGet(path);
-        var body = json.decode(response.body);
-        loadingMore.value = false;
-        if (response.statusCode == 200) {
-          if (body.length > 0) {
-            posts.state.addAll(body);
+      if (offlineMode.state && posts.state.length > 0) {
+        Fluttertoast.showToast(
+            msg: "You are currently in offline mode",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.CENTER,
+            timeInSecForIosWeb: 1,
+            backgroundColor: colorPrimary,
+            textColor: Colors.white,
+            fontSize: 16.0);
 
-            var box = await Hive.openBox('appBox');
-            box.put('posts', json.encode(posts.state));
-            isLoadMoreDone.value = false;
+        loading.value = false;
+        loadingError.value = true;
+      } else {
+        try {
+          loadingMore.value = true;
+          page.value++;
+          var path = filter.value['id'] == 0
+              ? "/posts?_embed&per_page=20&page=" + page.value.toString()
+              : '/posts?_embed&per_page=20&page=' +
+                  page.value.toString() +
+                  '&categories=' +
+                  filter.value['id'].toString();
+          var response = await Network().simpleGet(path);
+          var body = json.decode(response.body);
+          loadingMore.value = false;
+          if (response.statusCode == 200) {
+            if (body.length > 0) {
+              posts.state.addAll(body);
+
+              var box = await Hive.openBox('appBox');
+              box.put('posts', json.encode(posts.state));
+              isLoadMoreDone.value = false;
+            } else {
+              isLoadMoreDone.value = true;
+            }
           } else {
-            isLoadMoreDone.value = true;
+            isLoadMoreDone.value = false;
           }
-        } else {
+        } catch (e) {
+          loadingMore.value = false;
           isLoadMoreDone.value = false;
         }
-      } catch (e) {
-        loadingMore.value = false;
-        isLoadMoreDone.value = false;
       }
+    }
+
+    switchOn() async {
+      offlineMode.state = false;
+      var box = await Hive.openBox('appBox');
+      box.put('offline_mode', offlineMode.state);
+      getPosts();
     }
 
     final List<Widget> imageSliders = latestposts.state
@@ -627,6 +664,29 @@ class Home extends HookWidget {
                                     loadData: getPosts,
                                     message: "No post found,")),
               ),
+              offlineMode.state
+                  ? Container(
+                      padding: EdgeInsets.symmetric(vertical: 6),
+                      color: Colors.black,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "You currently in offline mode",
+                            style:
+                                TextStyle(color: Colors.white.withOpacity(0.5)),
+                          ),
+                          SizedBox(width: 10),
+                          InkWell(
+                            onTap: switchOn,
+                            child: Text("Turn off.",
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold)),
+                          ),
+                        ],
+                      ))
+                  : SizedBox()
             ],
           ),
         ),

@@ -17,6 +17,7 @@ class Bookmarks extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final bookmarks = useProvider(bookmarksProvider);
+    final color = useProvider(colorProvider);
     final loading = useState(true);
     final categories = useState([
       {"id": 0, "name": "All Bookmarks"}
@@ -86,7 +87,7 @@ class Bookmarks extends HookWidget {
     }, const []);
     return Scaffold(
       body: Container(
-        color: Colors.white,
+        color: color.state == 'dark' ? primaryDark : Colors.white,
         padding: EdgeInsets.only(top: 50),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -96,8 +97,12 @@ class Bookmarks extends HookWidget {
                 SizedBox(width: 20),
                 Expanded(
                   child: Text("Bookmarks",
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                          color: color.state == 'dark'
+                              ? Color(0xFFE9E9E9)
+                              : Colors.black)),
                 ),
                 InkWell(
                   onTap: () => showMaterialModalBottomSheet(
@@ -137,17 +142,37 @@ class Bookmarks extends HookWidget {
                       padding:
                           EdgeInsets.symmetric(horizontal: 15, vertical: 5),
                       decoration: BoxDecoration(
-                          border: Border.all(),
+                          border: Border.all(
+                              color: loading.value
+                                  ? color.state == 'dark'
+                                      ? Color(0xFF8D949F).withOpacity(0.5)
+                                      : Colors.black12
+                                  : color.state == 'dark'
+                                      ? Color(0xFF8D949F)
+                                      : Colors.black),
                           borderRadius: BorderRadius.circular(15)),
                       child: Row(
                         children: [
                           Text("${filter.value['name']}",
-                              style:
-                                  TextStyle(fontSize: 14, color: Colors.black)),
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  color: loading.value
+                                      ? color.state == 'dark'
+                                          ? Color(0xFF8D949F).withOpacity(0.5)
+                                          : Colors.black38
+                                      : color.state == 'dark'
+                                          ? Color(0xFF8D949F)
+                                          : Colors.black)),
                           SizedBox(width: 10),
                           SvgPicture.asset(
                             iconsPath + "cheveron-down.svg",
-                            color: Colors.black,
+                            color: loading.value
+                                ? color.state == 'dark'
+                                    ? Color(0xFF8D949F).withOpacity(0.5)
+                                    : Colors.black12
+                                : color.state == 'dark'
+                                    ? Color(0xFF8D949F)
+                                    : Colors.black,
                             width: 15,
                           )
                         ],
@@ -168,11 +193,15 @@ class Bookmarks extends HookWidget {
                             children: bookmarks.state
                                 .asMap()
                                 .entries
-                                .map((each) => EachPost(
-                                    background: each.key % 2 == 0
-                                        ? eachPostBg
-                                        : eachPostBgLow,
-                                    post: each.value))
+                                .map((post) => EachPost(
+                                    background: post.key % 2 == 0
+                                        ? (color.state == 'dark'
+                                            ? eachPostBgDark
+                                            : eachPostBg)
+                                        : (color.state == 'dark'
+                                            ? eachPostBgLowDark
+                                            : eachPostBgLow),
+                                    post: post.value))
                                 .toList()),
                       ),
                     ),
