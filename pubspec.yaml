@@ -43,6 +43,7 @@ dependencies:
   wp_json_api: ^3.0.0
   fluttertoast: ^8.0.8
   email_validator: ^2.0.1
+  onesignal_flutter: ^3.2.0
 
 dev_dependencies:
   flutter_test:
