@@ -15,25 +15,28 @@ class AnimatedBottomBar extends HookWidget {
   Widget build(BuildContext context) {
     final selectedBarIndex = useState(0);
     final color = useProvider(colorProvider);
+    bool largeScreen = MediaQuery.of(context).size.width > 800 ? true : false;
     return Material(
       elevation: 0,
-      color:color.state == 'dark' ? primaryDark :  Colors.white,
+      color: color.state == 'dark' ? primaryDark : Colors.white,
       child: Container(
         // margin: EdgeInsets.only(left: 20, right: 20, bottom: 20),
         padding: EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 15),
+
         decoration: BoxDecoration(
           color: color.state == 'dark' ? Color(0xFF000205) : tabBgColor,
         ),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: _buildBarItems(selectedBarIndex, color),
+          mainAxisAlignment: largeScreen ? MainAxisAlignment.center : MainAxisAlignment.spaceAround,
+          children: _buildBarItems(selectedBarIndex, color, largeScreen),
         ),
       ),
     );
   }
 
-  List<Widget> _buildBarItems(selectedBarIndex, color) {
+  List<Widget> _buildBarItems(selectedBarIndex, color, largeScreen) {
     List<Widget> _barItems = [];
     for (int i = 0; i < barItems.length; i++) {
       BarItem item = barItems[i];
@@ -48,13 +51,19 @@ class AnimatedBottomBar extends HookWidget {
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
           child: Row(
             children: <Widget>[
+              SizedBox(width: largeScreen? 30 : 0),
               Container(
                 child: SvgPicture.asset(
                   item.icon,
-                  color: isSelected ? colorPrimary : color.state == 'dark' ? Color(0xFF8D949F) :  tabIconColor,
+                  color: isSelected
+                      ? colorPrimary
+                      : color.state == 'dark'
+                          ? Color(0xFF8D949F)
+                          : tabIconColor,
                   width: isSelected ? item.focusSize : item.theSize,
                 ),
               ),
+              SizedBox(width:  largeScreen? 30 : 0),
             ],
           ),
         ),

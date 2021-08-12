@@ -20,7 +20,6 @@ class Categories extends HookWidget {
     final color = useProvider(colorProvider);
     final loading = useState(true);
     final loadingError = useState(true);
-    final loadingMore = useState(false);
     final isLoadMoreDone = useState(false);
     final page = useState(1);
 

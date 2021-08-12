@@ -1,11 +1,15 @@
 import 'dart:convert';
 
+import 'package:blogsquid/components/empty_error.dart';
+import 'package:blogsquid/components/network_error.dart';
 import 'package:blogsquid/config/app.dart';
 import 'package:blogsquid/pages/show_page.dart';
+import 'package:blogsquid/utils/network.dart';
 import 'package:blogsquid/utils/providers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -17,6 +21,35 @@ class Account extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final color = useProvider(colorProvider);
+    final pages = useProvider(pagesProvider);
+
+    final loading = useState(true);
+    final loadingError = useState(true);
+
+    void loadData() async {
+      try {
+        loading.value = true;
+        loadingError.value = false;
+        var response = await Network().simpleGet("/pages?per_page=20");
+        var body = json.decode(response.body);
+        loading.value = false;
+        if (response.statusCode == 200) {
+          pages.state = body;
+          var box = await Hive.openBox('appBox');
+          box.put('pages', json.encode(body));
+        } else {
+          loadingError.value = true;
+        }
+      } catch (e) {
+        loading.value = false;
+        loadingError.value = true;
+        print(e);
+      }
+    }
+
+    useEffect(() {
+      loadData();
+    }, const []);
 
     return Scaffold(
       body: Container(
@@ -52,6 +85,9 @@ class Account extends HookWidget {
                               title: "Color Preference",
                               color: color,
                               action: () => showMaterialModalBottomSheet(
+                                  backgroundColor: Colors.transparent,
+                                  barrierColor: Colors.black.withOpacity(
+                                      color.state == 'dark' ? 0.8 : 0.5),
                                   context: context,
                                   builder: (context) => ColorModal())),
                           EachTop(
@@ -61,57 +97,63 @@ class Account extends HookWidget {
                               color: color,
                               bordered: false,
                               action: () => showMaterialModalBottomSheet(
+                                  backgroundColor: Colors.transparent,
+                                  barrierColor: Colors.black.withOpacity(
+                                      color.state == 'dark' ? 0.8 : 0.5),
                                   context: context,
                                   builder: (context) => Configurations())),
                         ],
                       ),
                     ),
-                    SizedBox(height: 30),
-                    Padding(
-                      padding: EdgeInsets.only(left: 20.0),
-                      child: Text("Pages",
-                          style: TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w500,
-                              color: color.state == 'dark'
-                                  ? Color(0xFFE9E9E9).withOpacity(0.7)
-                                  : Colors.black)),
-                    ),
-                    SizedBox(height: 15),
-                    Container(
-                      padding: EdgeInsets.only(left: 20, top: 10, bottom: 10),
-                      decoration: BoxDecoration(
-                          color: color.state == 'dark'
-                              ? eachPostBgDark
-                              : Color(0xFFF8F8F8),
-                          borderRadius: BorderRadius.circular(4)),
-                      child: Column(
-                        children: [
-                          EachMenu(
-                            title: "About us",
-                            action: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => ShowPage())),
-                          ),
-                          EachMenu(
-                            title: "Contact us",
-                            action: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => ShowPage())),
-                          ),
-                          EachMenu(
-                            title: "Terms & Conditions",
-                            bordered: false,
-                            action: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => ShowPage())),
+                    SizedBox(height: 40),
+                    loading.value && pages.state.length == 0
+                        ? Container(
+                            margin: EdgeInsets.only(
+                                top: (MediaQuery.of(context).size.height / 3) -
+                                    20),
+                            child: SpinKitFadingCube(
+                              color: colorPrimary,
+                              size: 30.0,
+                            ),
                           )
-                        ],
-                      ),
-                    )
+                        : loadingError.value && pages.state.length == 0
+                            ? NetworkError(
+                                loadData: loadData, message: "Network error,")
+                            : pages.state.length > 0
+                                ? Container(
+                                    padding: EdgeInsets.only(
+                                        left: 20, top: 10, bottom: 10),
+                                    decoration: BoxDecoration(
+                                        color: color.state == 'dark'
+                                            ? eachPostBgDark
+                                            : Color(0xFFF8F8F8),
+                                        borderRadius: BorderRadius.circular(4)),
+                                    child: Column(
+                                        children: pages.state
+                                            .asMap()
+                                            .entries
+                                            .map((page) => EachMenu(
+                                                page: page.value,
+                                                bordered: pages.state.length <=
+                                                        page.key + 1
+                                                    ? false
+                                                    : true,
+                                                action: () => Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            ShowPage(
+                                                                page: page
+                                                                    .value)))))
+                                            .toList()),
+                                  )
+                                : Expanded(
+                                    child: Center(
+                                      child: EmptyError(
+                                          loadData: loadData,
+                                          message: "No page found,"),
+                                    ),
+                                  )
                   ],
                 ),
               ),
@@ -180,6 +222,7 @@ class Configurations extends HookWidget {
   Widget build(BuildContext context) {
     final dataMode = useProvider(dataSavingModeProvider);
     final offlineMode = useProvider(offlineModeProvider);
+    final color = useProvider(colorProvider);
     toggleDataSavingMode() async {
       dataMode.state = !dataMode.state;
       var box = await Hive.openBox('appBox');
@@ -194,68 +237,87 @@ class Configurations extends HookWidget {
 
     return SingleChildScrollView(
       controller: ModalScrollController.of(context),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: EdgeInsets.only(left: 30.0, top: 30, bottom: 20),
-            child: Text("Configurations",
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
-          ),
-          Container(
-            margin: EdgeInsets.only(
-              bottom: 40,
-              left: 20,
-              right: 20,
+      child: Container(
+        decoration: BoxDecoration(
+            color: color.state == 'dark' ? Color(0xFF0F1620) : Colors.white,
+            borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(5), topRight: Radius.circular(5))),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(left: 30.0, top: 30, bottom: 20),
+              child: Text("Configurations",
+                  style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      color: color.state == 'dark'
+                          ? Color(0xFFE9E9E9)
+                          : Colors.black)),
             ),
-            decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.06),
-                borderRadius: BorderRadius.circular(5)),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                ListTile(
-                  title: Row(
-                    children: [
-                      Expanded(
-                        child: Text("Data saving mode",
-                            style: TextStyle(color: Colors.black)),
-                      ),
-                      CupertinoSwitch(
-                        value: dataMode.state ? true : false,
-                        onChanged: (value) {
-                          toggleDataSavingMode();
-                        },
-                      )
-                    ],
+            Container(
+              margin: EdgeInsets.only(
+                bottom: 40,
+                left: 20,
+                right: 20,
+              ),
+              decoration: BoxDecoration(
+                  color: color.state == 'dark'
+                      ? Colors.black.withOpacity(0.4)
+                      : Colors.black.withOpacity(0.06),
+                  borderRadius: BorderRadius.circular(5)),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  ListTile(
+                    title: Row(
+                      children: [
+                        Expanded(
+                          child: Text("Data saving mode",
+                              style: TextStyle(
+                                  color: color.state == 'dark'
+                                      ? Color(0xFF8D949F)
+                                      : Colors.black)),
+                        ),
+                        CupertinoSwitch(
+                          value: dataMode.state ? true : false,
+                          onChanged: (value) {
+                            toggleDataSavingMode();
+                          },
+                        )
+                      ],
+                    ),
+                    onTap: () {
+                      toggleDataSavingMode();
+                    },
                   ),
-                  onTap: () {
-                    toggleDataSavingMode();
-                  },
-                ),
-                ListTile(
-                  title: Row(
-                    children: [
-                      Expanded(
-                        child: Text("Offline mode",
-                            style: TextStyle(color: Colors.black)),
-                      ),
-                      CupertinoSwitch(
-                        value: offlineMode.state ? true : false,
-                        onChanged: (value) {
-                          toggleOfflineMode();
-                        },
-                      )
-                    ],
+                  ListTile(
+                    title: Row(
+                      children: [
+                        Expanded(
+                          child: Text("Offline mode",
+                              style: TextStyle(
+                                  color: color.state == 'dark'
+                                      ? Color(0xFF8D949F)
+                                      : Colors.black)),
+                        ),
+                        CupertinoSwitch(
+                          value: offlineMode.state ? true : false,
+                          onChanged: (value) {
+                            toggleOfflineMode();
+                          },
+                        )
+                      ],
+                    ),
+                    onTap: () {
+                      toggleOfflineMode();
+                    },
                   ),
-                  onTap: () {
-                    toggleOfflineMode();
-                  },
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -275,69 +337,96 @@ class ColorModal extends HookWidget {
 
     return SingleChildScrollView(
       controller: ModalScrollController.of(context),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: EdgeInsets.only(left: 30.0, top: 30, bottom: 20),
-            child: Text("Color Preference",
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
-          ),
-          Container(
-            margin: EdgeInsets.only(
-              bottom: 40,
-              left: 20,
-              right: 20,
+      child: Container(
+        decoration: BoxDecoration(
+            color: color.state == 'dark' ? Color(0xFF0F1620) : Colors.white,
+            borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(5), topRight: Radius.circular(5))),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(left: 30.0, top: 30, bottom: 20),
+              child: Text("Color Preference",
+                  style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      color: color.state == 'dark'
+                          ? Color(0xFFE9E9E9)
+                          : Colors.black)),
             ),
-            decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.06),
-                borderRadius: BorderRadius.circular(5)),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                ListTile(
-                  leading: new Icon(
-                    color.state == 'light'
-                        ? Icons.check_circle
-                        : Icons.radio_button_unchecked,
-                    color: color.state == 'light' ? colorPrimary : Colors.black,
+            Container(
+              margin: EdgeInsets.only(
+                bottom: 40,
+                left: 20,
+                right: 20,
+              ),
+              decoration: BoxDecoration(
+                  color: color.state == 'dark'
+                      ? Colors.black.withOpacity(0.4)
+                      : Colors.black.withOpacity(0.06),
+                  borderRadius: BorderRadius.circular(5)),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  ListTile(
+                    leading: new Icon(
+                      color.state == 'light'
+                          ? Icons.check_circle
+                          : Icons.radio_button_unchecked,
+                      color: color.state == 'light'
+                          ? colorPrimary
+                          : color.state == 'dark'
+                              ? Color(0xFF8D949F)
+                              : Colors.black,
+                    ),
+                    title: new Text("Light Mode",
+                        style: TextStyle(
+                            color: color.state == 'dark'
+                                ? Color(0xFF8D949F)
+                                : Colors.black)),
+                    onTap: () {
+                      changeColor('light');
+                    },
                   ),
-                  title: new Text("Light Mode",
-                      style: TextStyle(color: Colors.black)),
-                  onTap: () {
-                    changeColor('light');
-                  },
-                ),
-                ListTile(
-                  leading: new Icon(
-                    color.state == 'dark'
-                        ? Icons.check_circle
-                        : Icons.radio_button_unchecked,
-                    color: color.state == 'dark' ? colorPrimary : Colors.black,
+                  ListTile(
+                    leading: new Icon(
+                      color.state == 'dark'
+                          ? Icons.check_circle
+                          : Icons.radio_button_unchecked,
+                      color: color.state == 'dark'
+                          ? colorPrimary
+                          : color.state == 'dark'
+                              ? Color(0xFF8D949F)
+                              : Colors.black,
+                    ),
+                    title: new Text("Dark Mode",
+                        style: TextStyle(
+                            color: color.state == 'dark'
+                                ? Color(0xFF8D949F)
+                                : Colors.black)),
+                    onTap: () {
+                      changeColor('dark');
+                    },
                   ),
-                  title: new Text("Dark Mode",
-                      style: TextStyle(color: Colors.black)),
-                  onTap: () {
-                    changeColor('dark');
-                  },
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
 class EachMenu extends HookWidget {
-  final String title;
+  final Map page;
   final bool bordered;
   final Function action;
   const EachMenu({
     Key? key,
-    this.title = "",
-    this.bordered = true,
+    required this.page,
+    required this.bordered,
     required this.action,
   }) : super(key: key);
 
@@ -361,7 +450,7 @@ class EachMenu extends HookWidget {
           children: [
             Expanded(
                 child: Text(
-              title,
+              "${page['title']['rendered'].replaceAll(RegExp(r'<[^>]*>|&[^;]+;'), '')}",
               style: TextStyle(
                   fontSize: 16,
                   color: color.state == 'dark'

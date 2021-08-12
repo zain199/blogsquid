@@ -13,7 +13,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 
 class LoadPost extends HookWidget {
   final int postid;
-  const LoadPost(this.postid);
+  const LoadPost({Key? key, required this.postid}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -28,15 +28,6 @@ class LoadPost extends HookWidget {
         var body = json.decode(response.body);
         loading.value = false;
         if (response.statusCode == 200) {
-          print("return of got here success");
-          Fluttertoast.showToast(
-              msg: "return of got here success",
-              toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.CENTER,
-              timeInSecForIosWeb: 1,
-              backgroundColor: colorPrimary,
-              textColor: Colors.white,
-              fontSize: 16.0);
           post.value = body;
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
@@ -44,7 +35,6 @@ class LoadPost extends HookWidget {
             ),
           );
         } else {
-          print("return of got here, failed");
           if (response.statusCode == 404) {
             Navigator.of(context).pop(context);
             Fluttertoast.showToast(

@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:blogsquid/components/empty_error.dart';
 import 'package:blogsquid/components/network_error.dart';
 import 'package:blogsquid/config/app.dart';
+import 'package:blogsquid/config/modules.dart';
 import 'package:blogsquid/utils/db_helper.dart';
 import 'package:blogsquid/utils/network.dart';
 import 'package:blogsquid/utils/providers.dart';
@@ -14,11 +17,13 @@ import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:share/share.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class PostDetail extends HookWidget {
   final Map post;
@@ -32,6 +37,21 @@ class PostDetail extends HookWidget {
     DBHelper dbHelper = new DBHelper();
     final bookmarks = useProvider(bookmarksProvider);
     final bookmarked = useState(false);
+    final pageloading = useState(true);
+    bool largeScreen = MediaQuery.of(context).size.width > 800 ? true : false;
+
+    final AdRequest request = AdRequest(
+      keywords: <String>['foo', 'bar'],
+      contentUrl: 'http://foo.com/bar.html',
+      nonPersonalizedAds: true,
+    );
+
+    final _anchoredBanner = useState(new BannerAd(
+        adUnitId: '',
+        listener: BannerAdListener(),
+        request: request,
+        size: AdSize.largeBanner));
+    final bannerloading = useState(true);
 
     toggleBookmark() async {
       dbHelper.addOrDelete(post);
@@ -64,8 +84,37 @@ class PostDetail extends HookWidget {
               .replaceAll(RegExp(r'<[^>]*>|&[^;]+;'), ''));
     }
 
+    loadBanner() async {
+      await Future.delayed(Duration(seconds: 1));
+      pageloading.value = false;
+      _anchoredBanner.value = BannerAd(
+        adUnitId:
+            Platform.isAndroid ? ADMOB_UNIT_ID_ANDROID : ADMOB_UNIT_ID_IOS,
+        request: AdRequest(),
+        size: AdSize.banner,
+        listener: BannerAdListener(
+          onAdLoaded: (Ad ad) {
+            print('$BannerAd loaded.');
+          },
+          onAdFailedToLoad: (Ad ad, LoadAdError error) {
+            print('$BannerAd failedToLoad: $error');
+          },
+          onAdOpened: (Ad ad) => print('$BannerAd onAdOpened.'),
+          onAdClosed: (Ad ad) => print('$BannerAd onAdClosed.'),
+          //onApplicationExit: (Ad ad) => print('$BannerAd onApplicationExit.'),
+        ),
+      );
+
+      _anchoredBanner.value.load();
+      bannerloading.value = false;
+    }
+
+    void _launchURL(_url) async => await canLaunch(_url)
+        ? await launch(_url)
+        : throw 'Could not launch $_url';
     useEffect(() {
       checkBm();
+      loadBanner();
     }, const []);
     return Scaffold(
       body: Container(
@@ -227,62 +276,100 @@ class PostDetail extends HookWidget {
                                   ],
                                 ),
                                 SizedBox(height: 5),
-                                Html(
-                                  data: post['content']['rendered'],
-                                  style: {
-                                    "html": Style(
-                                        lineHeight: LineHeight.em(1.6),
-                                        fontSize: FontSize.large,
-                                        color: color.state == 'dark'
-                                            ? Color(0xFF8D949F)
-                                            : Color(0xFF464646)),
-                                    "body": Style(margin: EdgeInsets.zero),
-                                    "a": Style(color: colorPrimary),
-                                  },
-                                  customImageRenders: {
-                                    networkSourceMatcher(
-                                            domains: ["flutter.dev"]):
-                                        (context, attributes, element) {
-                                      return Image.asset(
-                                          'assets/images/placeholder-' +
-                                              color.state +
-                                              '.png',
-                                          width: 200);
-                                    },
-                                    networkSourceMatcher(
-                                            domains: ["mydomain.com"]):
-                                        networkImageRender(
-                                      headers: {"Custom-Header": "some-value"},
-                                      altWidget: (alt) => Text(alt ?? ""),
-                                      loadingWidget: () => Text("Loading..."),
-                                    ),
-                                    // On relative paths starting with /wiki, prefix with a base url
-                                    (attr, _) =>
-                                            attr["src"] != null &&
-                                            attr["src"]!.startsWith("/wiki"):
-                                        networkImageRender(
-                                            mapUrl: (url) =>
-                                                "https://upload.wikimedia.org" +
-                                                url!),
-                                    // Custom placeholder image for broken links
-                                    networkSourceMatcher(): networkImageRender(
-                                        altWidget: (_) => Image.asset(
-                                              'assets/images/placeholder-' +
-                                                  color.state +
-                                                  '.png',
-                                              width: 200,
-                                            )),
-                                  },
-                                  onLinkTap: (url, _, __, ___) {
-                                    print("Opening $url...");
-                                  },
-                                  onImageTap: (src, _, __, ___) {
-                                    print(src);
-                                  },
-                                  onImageError: (exception, stackTrace) {
-                                    print(exception);
-                                  },
-                                ),
+                                pageloading.value
+                                    ? Container(
+                                        height: 200,
+                                        child: Center(
+                                          child: SpinKitFadingCube(
+                                            color: colorPrimary,
+                                            size: 30.0,
+                                          ),
+                                        ),
+                                      )
+                                    : Column(
+                                        children: [
+                                          Html(
+                                            data: post['content']['rendered'],
+                                            style: {
+                                              "html": Style(
+                                                  lineHeight:
+                                                      LineHeight.em(1.6),
+                                                  fontSize: FontSize.large,
+                                                  color: color.state == 'dark'
+                                                      ? Color(0xFF8D949F)
+                                                      : Color(0xFF464646)),
+                                              "body": Style(
+                                                  margin: EdgeInsets.zero),
+                                              "a": Style(color: colorPrimary),
+                                            },
+                                            customImageRenders: {
+                                              networkSourceMatcher(
+                                                      domains: ["flutter.dev"]):
+                                                  (context, attributes,
+                                                      element) {
+                                                return Image.asset(
+                                                    'assets/images/placeholder-' +
+                                                        color.state +
+                                                        '.png',
+                                                    width: 200);
+                                              },
+                                              networkSourceMatcher(domains: [
+                                                "mydomain.com"
+                                              ]): networkImageRender(
+                                                headers: {
+                                                  "Custom-Header": "some-value"
+                                                },
+                                                altWidget: (alt) =>
+                                                    Text(alt ?? ""),
+                                                loadingWidget: () =>
+                                                    Text("Loading..."),
+                                              ),
+                                              // On relative paths starting with /wiki, prefix with a base url
+                                              (attr, _) =>
+                                                  attr["src"] != null &&
+                                                  attr["src"]!.startsWith(
+                                                      "/wiki"): networkImageRender(
+                                                  mapUrl: (url) =>
+                                                      "https://upload.wikimedia.org" +
+                                                      url!),
+                                              // Custom placeholder image for broken links
+                                              networkSourceMatcher():
+                                                  networkImageRender(
+                                                      altWidget: (_) =>
+                                                          Image.asset(
+                                                            'assets/images/placeholder-' +
+                                                                color.state +
+                                                                '.png',
+                                                            width: 200,
+                                                          )),
+                                            },
+                                            onLinkTap: (url, _, __, ___) {
+                                              print("Opening $url...");
+                                              _launchURL(url);
+                                            },
+                                            onImageTap: (src, _, __, ___) {
+                                              print(src);
+                                            },
+                                            onImageError:
+                                                (exception, stackTrace) {
+                                              print(exception);
+                                            },
+                                          ),
+                                          bannerloading.value
+                                              ? Text("loading")
+                                              : Container(
+                                                  width: _anchoredBanner
+                                                      .value.size.width
+                                                      .toDouble(),
+                                                  height: _anchoredBanner
+                                                      .value.size.height
+                                                      .toDouble(),
+                                                  child: AdWidget(
+                                                      ad: _anchoredBanner
+                                                          .value),
+                                                )
+                                        ],
+                                      ),
                               ],
                             ),
                           ),
@@ -293,6 +380,7 @@ class PostDetail extends HookWidget {
                       bottom: 0,
                       child: InkWell(
                         onTap: () => showMaterialModalBottomSheet(
+                            enableDrag: false,
                             context: context,
                             builder: (context) => CommentsWidget(post['id'])),
                         child: Container(
@@ -503,14 +591,31 @@ class CommentsWidget extends HookWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: EdgeInsets.only(left: 35.0, top: 40, bottom: 15),
-            child: Text("Comments",
-                style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                    color: color.state == 'dark'
-                        ? Color(0xFFE9E9E9)
-                        : Colors.black)),
+            padding:
+                EdgeInsets.only(left: 35.0, top: 40, bottom: 15, right: 20),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text("Comments",
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                          color: color.state == 'dark'
+                              ? Color(0xFFE9E9E9)
+                              : Colors.black)),
+                ),
+                InkWell(
+                  onTap: () => Navigator.pop(context),
+                  child: Text("Close",
+                      style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: color.state == 'dark'
+                              ? Color(0xFFE9E9E9).withOpacity(0.5)
+                              : Colors.black)),
+                )
+              ],
+            ),
           ),
           loading.value && comments.value.length == 0
               ? Expanded(
@@ -584,6 +689,8 @@ class CommentsWidget extends HookWidget {
             onTap: () => showMaterialModalBottomSheet(
                 context: context,
                 backgroundColor: Colors.transparent,
+                barrierColor:
+                    Colors.black.withOpacity(color.state == 'dark' ? 0.8 : 0.5),
                 builder: (context) =>
                     WriteCommentWidget(storeComment, commenting)),
             child: Container(
@@ -650,11 +757,7 @@ class WriteCommentWidget extends HookWidget {
         child: Container(
           //margin: EdgeInsets.symmetric(horizontal: 10),
           decoration: BoxDecoration(
-              color: color.state == 'dark' ? primaryDark : Colors.white,
-              border: Border.all(
-                  color: color.state == 'dark'
-                      ? Colors.white.withOpacity(0.4)
-                      : Colors.transparent),
+              color: color.state == 'dark' ? Color(0xFF0F1620) : Colors.white,
               borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(5), topRight: Radius.circular(5))),
           child: Column(
@@ -885,13 +988,13 @@ class EachComment extends HookWidget {
                     child: Text(
                   "${comment['author_name']}",
                   style: TextStyle(
-                      color: Color(0xFF4E4E4E).withOpacity(0.7),
+                      color: Color(0xFF8D94FF).withOpacity(0.7),
                       fontSize: 14,
                       fontWeight: FontWeight.w500),
                 )),
                 Text(Jiffy(comment['date'], "yyyy-MM-dd").fromNow(),
                     style:
-                        TextStyle(color: Color(0xFF4E4E4E).withOpacity(0.7))),
+                        TextStyle(color: Color(0xFF8D949F).withOpacity(0.5))),
               ],
             ),
             SizedBox(height: 10),
@@ -899,8 +1002,9 @@ class EachComment extends HookWidget {
               comment['content']['rendered']
                   .replaceAll(RegExp(r'<[^>]*>|&[^;]+;'), ''),
               style: TextStyle(
-                  color:
-                      color.state == 'dark' ? Color(0xFF8D949F) : Colors.black,
+                  color: color.state == 'dark'
+                      ? Color(0xFFE9E9E9).withOpacity(0.7)
+                      : Colors.black,
                   fontSize: 16,
                   height: 1.5),
             ),

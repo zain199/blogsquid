@@ -4,8 +4,10 @@ import 'package:blogsquid/components/empty_error.dart';
 import 'package:blogsquid/components/logo.dart';
 import 'package:blogsquid/components/network_error.dart';
 import 'package:blogsquid/config/app.dart';
+import 'package:blogsquid/config/modules.dart';
 import 'package:blogsquid/pages/categories/category_detail.dart';
 import 'package:blogsquid/pages/posts/each_post.dart';
+import 'package:blogsquid/pages/posts/load_post.dart';
 import 'package:blogsquid/utils/network.dart';
 import 'package:blogsquid/utils/providers.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -19,8 +21,11 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 import '../post_detail.dart';
+
+import 'package:blogsquid/utils/globals.dart' as globals;
 
 final List<String> imgList = [
   'https://images.unsplash.com/photo-1520342868574-5fa3804e551c?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=6ff92caffcdd63681a35134a6770ed3b&auto=format&fit=crop&w=1951&q=80',
@@ -47,10 +52,63 @@ class Home extends HookWidget {
     final loadingMore = useState(false);
     final isLoadMoreDone = useState(false);
     final page = useState(1);
+    bool largeScreen = MediaQuery.of(context).size.width > 800 ? true : false;
     final filter = useState({
       "id": 0,
       "name": "Latest",
     });
+
+    Future<void> setupNotification() async {
+      //Remove this method to stop OneSignal Debugging
+      //OneSignal.shared.setLogLevel(OSLogLevel.verbose, OSLogLevel.none);
+
+      OneSignal.shared.setAppId(ONESIGNAL_APP_ID);
+
+      // The promptForPushNotificationsWithUserResponse function will show the iOS push notification prompt. We recommend removing the following code and instead using an In-App Message to prompt for notification permission
+      OneSignal.shared
+          .promptUserForPushNotificationPermission()
+          .then((accepted) {
+        print("Accepted permission: $accepted");
+      });
+
+      OneSignal.shared.setNotificationWillShowInForegroundHandler(
+          (OSNotificationReceivedEvent event) {
+        // Will be called whenever a notification is received in foreground
+        // Display Notification, pass null param for not displaying the notification
+        event.complete(event.notification);
+      });
+
+      OneSignal.shared
+          .setPermissionObserver((OSPermissionStateChanges changes) {
+        // Will be called whenever the permission changes
+        // (ie. user taps Allow on the permission prompt in iOS)
+      });
+
+      OneSignal.shared
+          .setSubscriptionObserver((OSSubscriptionStateChanges changes) {
+        // Will be called whenever the subscription changes
+        // (ie. user gets registered with OneSignal and gets a user ID)
+      });
+
+      OneSignal.shared.setEmailSubscriptionObserver(
+          (OSEmailSubscriptionStateChanges emailChanges) {
+        // Will be called whenever then user's email subscription changes
+        // (ie. OneSignal.setEmail(email) is called and the user gets registered
+      });
+      OneSignal.shared
+          .setNotificationOpenedHandler((OSNotificationOpenedResult result) {
+        // Will be called whenever a notification is opened/button pressed.
+        var postid = result.notification.additionalData?['post_id'];
+        if (postid != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => LoadPost(postid: postid)),
+          );
+        } else {
+          print(result.notification.additionalData);
+        }
+      });
+    }
 
     void getCategories() async {
       try {
@@ -236,6 +294,7 @@ class Home extends HookWidget {
         .toList();
 
     useEffect(() {
+      setupNotification();
       getPosts();
     }, const []);
 
@@ -247,13 +306,15 @@ class Home extends HookWidget {
           child: Column(
             children: [
               Container(
-                  padding: EdgeInsets.only(left: 20),
+                  padding: EdgeInsets.only(left: largeScreen ? 20 : 20),
                   child: Row(
                     children: [
-                      Container(
-                          width: 120,
-                          child: LogoWidget(
-                              18, color.state == 'dark' ? "dark" : "")),
+                      Expanded(
+                        child: Container(
+                            width: 100,
+                            child: LogoWidget(
+                                18, color.state == 'dark' ? "dark" : "")),
+                      ),
                       Expanded(
                         child: Stack(
                           children: [
@@ -325,8 +386,8 @@ class Home extends HookWidget {
                                             .map((category) => Container(
                                                   padding: EdgeInsets.symmetric(
                                                       vertical: 10),
-                                                  margin: EdgeInsets.only(
-                                                      right: 10),
+                                                  margin:
+                                                      EdgeInsets.only(right: 10),
                                                   child: InkWell(
                                                     onTap: () => Navigator.push(
                                                         context,
@@ -340,8 +401,7 @@ class Home extends HookWidget {
                                                       style: TextStyle(
                                                           color: color.state ==
                                                                   'dark'
-                                                              ? Color(
-                                                                  0xFF8D949F)
+                                                              ? Color(0xFF8D949F)
                                                               : primaryText),
                                                     ),
                                                   ),
@@ -403,6 +463,10 @@ class Home extends HookWidget {
                                       return false;
                                     },
                                     child: Container(
+                                      margin: EdgeInsets.only(top:largeScreen ? 20: 0),
+                                      width: largeScreen
+                                          ? 700
+                                          : MediaQuery.of(context).size.width,
                                       child: SingleChildScrollView(
                                         child: Column(
                                           children: [
@@ -497,67 +561,95 @@ class Home extends HookWidget {
                                                         ? null
                                                         : () =>
                                                             showMaterialModalBottomSheet(
+                                                              backgroundColor:
+                                                                  Colors
+                                                                      .transparent,
+                                                              barrierColor: Colors
+                                                                  .black
+                                                                  .withOpacity(
+                                                                      color.state ==
+                                                                              'dark'
+                                                                          ? 0.8
+                                                                          : 0.5),
                                                               context: context,
                                                               builder: (context) =>
                                                                   SingleChildScrollView(
                                                                 controller:
                                                                     ModalScrollController.of(
                                                                         context),
-                                                                child: Column(
-                                                                  mainAxisSize:
-                                                                      MainAxisSize
-                                                                          .min,
-                                                                  children: <
-                                                                      Widget>[
-                                                                    ListTile(
-                                                                      leading:
-                                                                          new Icon(
-                                                                        filter.value['id'] ==
-                                                                                0
-                                                                            ? Icons.check_circle
-                                                                            : Icons.radio_button_unchecked,
-                                                                        color: filter.value['id'] ==
-                                                                                0
-                                                                            ? colorPrimary
-                                                                            : Colors.black,
+                                                                child:
+                                                                    Container(
+                                                                  decoration: BoxDecoration(
+                                                                      color: color.state ==
+                                                                              'dark'
+                                                                          ? primaryDark
+                                                                          : Colors
+                                                                              .white,
+                                                                      borderRadius: BorderRadius.only(
+                                                                          topLeft: Radius.circular(
+                                                                              5),
+                                                                          topRight:
+                                                                              Radius.circular(5))),
+                                                                  child: Column(
+                                                                    mainAxisSize:
+                                                                        MainAxisSize
+                                                                            .min,
+                                                                    children: <
+                                                                        Widget>[
+                                                                      ListTile(
+                                                                        leading:
+                                                                            new Icon(
+                                                                          filter.value['id'] == 0
+                                                                              ? Icons.check_circle
+                                                                              : Icons.radio_button_unchecked,
+                                                                          color: filter.value['id'] == 0
+                                                                              ? colorPrimary
+                                                                              : color.state == 'dark'
+                                                                                  ? Color(0xFF8D949F)
+                                                                                  : Colors.black,
+                                                                        ),
+                                                                        title: new Text(
+                                                                            'Latest',
+                                                                            style:
+                                                                                TextStyle(color: color.state == 'dark' ? Color(0xFF8D949F) : Colors.black)),
+                                                                        onTap:
+                                                                            () {
+                                                                          filter.value =
+                                                                              {
+                                                                            "id":
+                                                                                0,
+                                                                            "name":
+                                                                                "Latest",
+                                                                          };
+                                                                          Navigator.pop(
+                                                                              context);
+                                                                          getPosts();
+                                                                        },
                                                                       ),
-                                                                      title: new Text(
-                                                                          'Latest',
-                                                                          style:
-                                                                              TextStyle(color: Colors.black)),
-                                                                      onTap:
-                                                                          () {
-                                                                        filter.value =
-                                                                            {
-                                                                          "id":
-                                                                              0,
-                                                                          "name":
-                                                                              "Latest",
-                                                                        };
-                                                                        Navigator.pop(
-                                                                            context);
-                                                                        getPosts();
-                                                                      },
-                                                                    ),
-                                                                    ...categories
-                                                                        .state
-                                                                        .map((cat) =>
-                                                                            ListTile(
-                                                                              leading: new Icon(
-                                                                                filter.value['id'] == cat['id'] ? Icons.check_circle : Icons.radio_button_unchecked,
-                                                                                color: filter.value['id'] == cat['id'] ? colorPrimary : Colors.black,
-                                                                              ),
-                                                                              title: new Text(cat['name'], style: TextStyle(color: Colors.black)),
-                                                                              onTap: () {
-                                                                                filter.value = {
-                                                                                  "id": cat['id'],
-                                                                                  "name": cat['name'],
-                                                                                };
-                                                                                Navigator.pop(context);
-                                                                                getPosts();
-                                                                              },
-                                                                            ))
-                                                                  ],
+                                                                      ...categories
+                                                                          .state
+                                                                          .map((cat) =>
+                                                                              ListTile(
+                                                                                leading: new Icon(
+                                                                                  filter.value['id'] == cat['id'] ? Icons.check_circle : Icons.radio_button_unchecked,
+                                                                                  color: filter.value['id'] == cat['id']
+                                                                                      ? colorPrimary
+                                                                                      : color.state == 'dark'
+                                                                                          ? Color(0xFF8D949F)
+                                                                                          : Colors.black,
+                                                                                ),
+                                                                                title: new Text(cat['name'], style: TextStyle(color: color.state == 'dark' ? Color(0xFF8D949F) : Colors.black)),
+                                                                                onTap: () {
+                                                                                  filter.value = {
+                                                                                    "id": cat['id'],
+                                                                                    "name": cat['name'],
+                                                                                  };
+                                                                                  Navigator.pop(context);
+                                                                                  getPosts();
+                                                                                },
+                                                                              ))
+                                                                    ],
+                                                                  ),
                                                                 ),
                                                               ),
                                                             ),

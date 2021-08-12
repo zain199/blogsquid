@@ -1,4 +1,4 @@
-package com.example.blogsquid
+package org.durabyte.blogsquid
 
 import io.flutter.embedding.android.FlutterActivity
 

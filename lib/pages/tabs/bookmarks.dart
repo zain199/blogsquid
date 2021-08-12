@@ -106,35 +106,52 @@ class Bookmarks extends HookWidget {
                 ),
                 InkWell(
                   onTap: () => showMaterialModalBottomSheet(
+                    backgroundColor: Colors.transparent,
+                    barrierColor: Colors.black
+                        .withOpacity(color.state == 'dark' ? 0.8 : 0.5),
                     context: context,
                     builder: (context) => SingleChildScrollView(
                       controller: ModalScrollController.of(context),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: <Widget>[
-                          ...categories.value.map((cat) => ListTile(
-                                leading: new Icon(
-                                  filter.value['id'].toString() ==
-                                          cat['id'].toString()
-                                      ? Icons.check_circle
-                                      : Icons.radio_button_unchecked,
-                                  color: filter.value['id'].toString() ==
-                                          cat['id'].toString()
-                                      ? colorPrimary
-                                      : Colors.black,
-                                ),
-                                title: new Text(cat['name'].toString(),
-                                    style: TextStyle(color: Colors.black)),
-                                onTap: () {
-                                  filter.value = {
-                                    "id": cat['id'].toString(),
-                                    "name": cat['name'].toString(),
-                                  };
-                                  Navigator.pop(context);
-                                  loadData();
-                                },
-                              )),
-                        ],
+                      child: Container(
+                        decoration: BoxDecoration(
+                            color: color.state == 'dark'
+                                ? primaryDark
+                                : Colors.white,
+                            borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(5),
+                                topRight: Radius.circular(5))),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            ...categories.value.map((cat) => ListTile(
+                                  leading: new Icon(
+                                    filter.value['id'].toString() ==
+                                            cat['id'].toString()
+                                        ? Icons.check_circle
+                                        : Icons.radio_button_unchecked,
+                                    color: filter.value['id'].toString() ==
+                                            cat['id'].toString()
+                                        ? colorPrimary
+                                        : color.state == 'dark'
+                                            ? Color(0xFF8D949F)
+                                            : Colors.black,
+                                  ),
+                                  title: new Text(cat['name'].toString(),
+                                      style: TextStyle(
+                                          color: color.state == 'dark'
+                                              ? Color(0xFF8D949F)
+                                              : Colors.black)),
+                                  onTap: () {
+                                    filter.value = {
+                                      "id": cat['id'].toString(),
+                                      "name": cat['name'].toString(),
+                                    };
+                                    Navigator.pop(context);
+                                    loadData();
+                                  },
+                                )),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -143,36 +160,24 @@ class Bookmarks extends HookWidget {
                           EdgeInsets.symmetric(horizontal: 15, vertical: 5),
                       decoration: BoxDecoration(
                           border: Border.all(
-                              color: loading.value
-                                  ? color.state == 'dark'
-                                      ? Color(0xFF8D949F).withOpacity(0.5)
-                                      : Colors.black12
-                                  : color.state == 'dark'
-                                      ? Color(0xFF8D949F)
-                                      : Colors.black),
+                              color: color.state == 'dark'
+                                  ? Color(0xFF8D949F)
+                                  : Colors.black),
                           borderRadius: BorderRadius.circular(15)),
                       child: Row(
                         children: [
                           Text("${filter.value['name']}",
                               style: TextStyle(
                                   fontSize: 14,
-                                  color: loading.value
-                                      ? color.state == 'dark'
-                                          ? Color(0xFF8D949F).withOpacity(0.5)
-                                          : Colors.black38
-                                      : color.state == 'dark'
-                                          ? Color(0xFF8D949F)
-                                          : Colors.black)),
+                                  color: color.state == 'dark'
+                                      ? Color(0xFF8D949F)
+                                      : Colors.black)),
                           SizedBox(width: 10),
                           SvgPicture.asset(
                             iconsPath + "cheveron-down.svg",
-                            color: loading.value
-                                ? color.state == 'dark'
-                                    ? Color(0xFF8D949F).withOpacity(0.5)
-                                    : Colors.black12
-                                : color.state == 'dark'
-                                    ? Color(0xFF8D949F)
-                                    : Colors.black,
+                            color: color.state == 'dark'
+                                ? Color(0xFF8D949F)
+                                : Colors.black,
                             width: 15,
                           )
                         ],
