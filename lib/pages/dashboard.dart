@@ -50,11 +50,6 @@ class _DashboardState extends State<Dashboard>
     _tabController = TabController(vsync: this, length: 5);
   }
 
-  void _toggleTab() {
-    _tabIndex = _tabController.index + 1;
-    _tabController.animateTo(_tabIndex);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

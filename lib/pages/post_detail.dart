@@ -38,7 +38,6 @@ class PostDetail extends HookWidget {
     final bookmarks = useProvider(bookmarksProvider);
     final bookmarked = useState(false);
     final pageloading = useState(true);
-    bool largeScreen = MediaQuery.of(context).size.width > 800 ? true : false;
 
     final AdRequest request = AdRequest(
       keywords: <String>['foo', 'bar'],

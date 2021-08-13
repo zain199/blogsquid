@@ -83,7 +83,6 @@ class Account extends HookWidget {
                               side: "left",
                               icon: "chart-pie.svg",
                               title: "Color Preference",
-                              color: color,
                               action: () => showMaterialModalBottomSheet(
                                   backgroundColor: Colors.transparent,
                                   barrierColor: Colors.black.withOpacity(
@@ -94,7 +93,6 @@ class Account extends HookWidget {
                               side: "right",
                               icon: "cog.svg",
                               title: "Configurations",
-                              color: color,
                               bordered: false,
                               action: () => showMaterialModalBottomSheet(
                                   backgroundColor: Colors.transparent,
@@ -165,22 +163,21 @@ class Account extends HookWidget {
   }
 }
 
-class EachTop extends StatelessWidget {
+class EachTop extends HookWidget {
   final String title, side, icon;
   final bool bordered;
   final Function action;
-  final StateNotifier color;
   const EachTop({
     this.title = "",
     this.bordered = true,
     required this.action,
     required this.side,
     required this.icon,
-    required this.color,
   });
 
   @override
   Widget build(BuildContext context) {
+    final color = useProvider(colorProvider);
     return Expanded(
         child: InkWell(
       onTap: () => action(),
