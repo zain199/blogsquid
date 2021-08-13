@@ -25,7 +25,6 @@ import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 import '../post_detail.dart';
 
-
 final List<String> imgList = [
   'https://images.unsplash.com/photo-1520342868574-5fa3804e551c?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=6ff92caffcdd63681a35134a6770ed3b&auto=format&fit=crop&w=1951&q=80',
   'https://images.unsplash.com/photo-1522205408450-add114ad53fe?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=368f45b0888aeb0b7b08e3a1084d3ede&auto=format&fit=crop&w=1950&q=80',
@@ -44,6 +43,7 @@ class Home extends HookWidget {
     final latestposts = useProvider(latestpostsProvider);
     final categories = useProvider(categoryProvider);
     final offlineMode = useProvider(offlineModeProvider);
+    final dataMode = useProvider(dataSavingModeProvider);
     final color = useProvider(colorProvider);
     final loading = useState(true);
     final loadingCategories = useState(true);
@@ -240,11 +240,25 @@ class Home extends HookWidget {
                       borderRadius: BorderRadius.all(Radius.circular(5.0)),
                       child: Stack(
                         children: <Widget>[
-                          Image.network(
-                              post["_embedded"]["wp:featuredmedia"][0]
-                                  ["source_url"],
-                              fit: BoxFit.cover,
-                              width: 1000.0),
+                          dataMode.state
+                              ? Image.asset(
+                                  'assets/images/placeholder-' +
+                                      color.state +
+                                      '.png',
+                                  fit: BoxFit.cover,
+                                  width: 1000.0)
+                              : post["_embedded"]["wp:featuredmedia"] != null
+                                  ? Image.network(
+                                      post["_embedded"]["wp:featuredmedia"][0]
+                                          ["source_url"],
+                                      fit: BoxFit.cover,
+                                      width: 1000.0)
+                                  : Image.asset(
+                                      'assets/images/placeholder-' +
+                                          color.state +
+                                          '.png',
+                                      fit: BoxFit.cover,
+                                      width: 1000.0),
                           Positioned(
                             bottom: 0.0,
                             left: 0.0,
@@ -385,8 +399,8 @@ class Home extends HookWidget {
                                             .map((category) => Container(
                                                   padding: EdgeInsets.symmetric(
                                                       vertical: 10),
-                                                  margin:
-                                                      EdgeInsets.only(right: 10),
+                                                  margin: EdgeInsets.only(
+                                                      right: 10),
                                                   child: InkWell(
                                                     onTap: () => Navigator.push(
                                                         context,
@@ -400,7 +414,8 @@ class Home extends HookWidget {
                                                       style: TextStyle(
                                                           color: color.state ==
                                                                   'dark'
-                                                              ? Color(0xFF8D949F)
+                                                              ? Color(
+                                                                  0xFF8D949F)
                                                               : primaryText),
                                                     ),
                                                   ),
@@ -462,7 +477,8 @@ class Home extends HookWidget {
                                       return false;
                                     },
                                     child: Container(
-                                      margin: EdgeInsets.only(top:largeScreen ? 20: 0),
+                                      margin: EdgeInsets.only(
+                                          top: largeScreen ? 20 : 0),
                                       width: largeScreen
                                           ? 700
                                           : MediaQuery.of(context).size.width,

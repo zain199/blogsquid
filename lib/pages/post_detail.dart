@@ -175,11 +175,18 @@ class PostDetail extends HookWidget {
                                     ? Image.asset('assets/images/placeholder-' +
                                         color.state +
                                         '.png')
-                                    : Image.network(
-                                        post["_embedded"]["wp:featuredmedia"][0]
-                                            ["source_url"],
-                                        fit: BoxFit.cover,
-                                      )),
+                                    : post["_embedded"]["wp:featuredmedia"] !=
+                                            null
+                                        ? Image.network(
+                                            post["_embedded"]
+                                                    ["wp:featuredmedia"][0]
+                                                ["source_url"],
+                                            fit: BoxFit.cover,
+                                          )
+                                        : Image.asset(
+                                            'assets/images/placeholder-' +
+                                                color.state +
+                                                '.png')),
                           ),
                           Container(
                             padding:

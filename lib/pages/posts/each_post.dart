@@ -46,9 +46,14 @@ class EachPost extends HookWidget {
                                   color.state +
                                   '.png')
                               .image
-                          : Image.network(post["_embedded"]["wp:featuredmedia"]
-                                  [0]["source_url"])
-                              .image,
+                          : post["_embedded"]["wp:featuredmedia"] != null
+                              ? Image.network(post["_embedded"]
+                                      ["wp:featuredmedia"][0]["source_url"])
+                                  .image
+                              : Image.asset('assets/images/placeholder-' +
+                                      color.state +
+                                      '.png')
+                                  .image,
                     )),
               ),
             ),
