@@ -3,9 +3,11 @@ import 'dart:convert';
 import 'package:blogsquid/components/empty_error.dart';
 import 'package:blogsquid/components/network_error.dart';
 import 'package:blogsquid/config/app.dart';
+import 'package:blogsquid/pages/auth/login.dart';
 import 'package:blogsquid/pages/show_page.dart';
+import 'package:blogsquid/utils/app_actions.dart';
 import 'package:blogsquid/utils/network.dart';
-import 'package:blogsquid/utils/providers.dart';
+import 'package:blogsquid/utils/Providers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -20,6 +22,8 @@ class Account extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    final account = useProvider(accountProvider);
+    final token = useProvider(userTokenProvider);
     final color = useProvider(colorProvider);
     final pages = useProvider(pagesProvider);
 
@@ -27,6 +31,12 @@ class Account extends HookWidget {
     final loadingError = useState(true);
 
     void loadData() async {
+      // print(account.state);
+      var result = await Network().validateToken();
+      print(result);
+      if (result == false) {
+        await AppAction().logout(account, token);
+      }
       try {
         loading.value = true;
         loadingError.value = false;
@@ -53,7 +63,7 @@ class Account extends HookWidget {
 
     return Scaffold(
       body: Container(
-        color: color.state == 'dark' ? primaryDark : Colors.white,
+        color: color.state == 'dark' ? primaryDark : primaryBg,
         padding: EdgeInsets.only(top: 50, left: 20, right: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -76,6 +86,107 @@ class Account extends HookWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    account.state['id'] != null
+                        ? Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                child: Column(
+                                  children: [
+                                    Container(
+                                        width: 60,
+                                        height: 60,
+                                        decoration: BoxDecoration(
+                                          color: Color(0xFFF3F3E8),
+                                          image: DecorationImage(
+                                              fit: BoxFit.cover,
+                                              image: account.state['avatar_urls'] !=
+                                                          null &&
+                                                      account.state['avatar_urls']
+                                                              ["96"] !=
+                                                          null
+                                                  ? Image.network(account.state[
+                                                          'avatar_urls']["96"])
+                                                      .image
+                                                  : Image.asset(
+                                                          'assets/images/placeholder-' +
+                                                              color.state +
+                                                              '.png')
+                                                      .image),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          border: Border.all(
+                                              color: colorPrimary, width: 3),
+                                        )),
+                                    SizedBox(height: 10),
+                                    Text(
+                                      "${account.state['name']}",
+                                      style: TextStyle(
+                                          color: color.state == 'dark'
+                                              ? Color(0xFFE9E9E9)
+                                              : Color(0xFF282828),
+                                          fontWeight: FontWeight.w500),
+                                    ),
+                                    SizedBox(height: 5),
+                                    Text(
+                                      "${account.state['email']}",
+                                      style:
+                                          TextStyle(color: Color(0xFF999999)),
+                                    ),
+                                    SizedBox(height: 20),
+                                    InkWell(
+                                        onTap: () async {
+                                          await AppAction()
+                                              .logout(account, token);
+                                        },
+                                        child: Container(
+                                            padding: EdgeInsets.symmetric(
+                                                vertical: 8, horizontal: 12),
+                                            decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(4),
+                                                color: colorPrimary
+                                                    .withOpacity(0.05)),
+                                            child: Text(
+                                              "Logout",
+                                              style: TextStyle(
+                                                  color: color.state == 'dark'
+                                                      ? Colors.redAccent
+                                                      : Color(0xFF282828),
+                                                  fontWeight: FontWeight.w500),
+                                            ))),
+                                    SizedBox(height: 40),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          )
+                        : Container(
+                            margin: EdgeInsets.only(bottom: 40, top: 20),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  "Get full access",
+                                  style: TextStyle(color: Color(0xFF9A9FAC)),
+                                ),
+                                SizedBox(width: 10),
+                                InkWell(
+                                  onTap: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => Login()),
+                                  ),
+                                  child: Text(
+                                    "Click here to Login",
+                                    style: TextStyle(
+                                        color: colorPrimary,
+                                        fontWeight: FontWeight.w600),
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
                     Container(
                       child: Row(
                         children: [
@@ -124,7 +235,7 @@ class Account extends HookWidget {
                                     decoration: BoxDecoration(
                                         color: color.state == 'dark'
                                             ? eachPostBgDark
-                                            : Color(0xFFF8F8F8),
+                                            : Color(0xFFF3F3F3),
                                         borderRadius: BorderRadius.circular(4)),
                                     child: Column(
                                         children: pages.state
@@ -151,7 +262,8 @@ class Account extends HookWidget {
                                           loadData: loadData,
                                           message: "No page found,"),
                                     ),
-                                  )
+                                  ),
+                    SizedBox(height: 40),
                   ],
                 ),
               ),
@@ -186,16 +298,17 @@ class EachTop extends HookWidget {
           margin: EdgeInsets.only(
               left: side == 'left' ? 0 : 5, right: side == 'left' ? 5 : 0),
           decoration: BoxDecoration(
-              color: color.state == 'dark' ? eachPostBgDark : Color(0xFFF8F8F8),
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(color: Color(0xFFEDEDED).withOpacity(0.7))),
+            color: color.state == 'dark' ? eachPostBgDark : Color(0xFFF3F3F3),
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(color: Color(0xFFEDEDED).withOpacity(0.7)),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SvgPicture.asset(
                 iconsPath + icon,
                 color: color.state == 'dark'
-                    ? Color(0xFF8D949F)
+                    ? Color(0xFFA7A9AC)
                     : Color(0xFF282828),
                 width: 35,
               ),
@@ -205,7 +318,7 @@ class EachTop extends HookWidget {
                 style: TextStyle(
                     fontSize: 16,
                     color: color.state == 'dark'
-                        ? Color(0xFF8D949F)
+                        ? Color(0xFFA7A9AC)
                         : Color(0xFF282828)),
               ),
             ],
@@ -236,7 +349,7 @@ class Configurations extends HookWidget {
       controller: ModalScrollController.of(context),
       child: Container(
         decoration: BoxDecoration(
-            color: color.state == 'dark' ? Color(0xFF0F1620) : Colors.white,
+            color: color.state == 'dark' ? eachPostBgDark : Colors.white,
             borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(5), topRight: Radius.circular(5))),
         child: Column(
@@ -273,7 +386,7 @@ class Configurations extends HookWidget {
                           child: Text("Data saving mode",
                               style: TextStyle(
                                   color: color.state == 'dark'
-                                      ? Color(0xFF8D949F)
+                                      ? Color(0xFFA7A9AC)
                                       : Colors.black)),
                         ),
                         CupertinoSwitch(
@@ -295,7 +408,7 @@ class Configurations extends HookWidget {
                           child: Text("Offline mode",
                               style: TextStyle(
                                   color: color.state == 'dark'
-                                      ? Color(0xFF8D949F)
+                                      ? Color(0xFFA7A9AC)
                                       : Colors.black)),
                         ),
                         CupertinoSwitch(
@@ -336,7 +449,7 @@ class ColorModal extends HookWidget {
       controller: ModalScrollController.of(context),
       child: Container(
         decoration: BoxDecoration(
-            color: color.state == 'dark' ? Color(0xFF0F1620) : Colors.white,
+            color: color.state == 'dark' ? eachPostBgDark : Colors.white,
             borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(5), topRight: Radius.circular(5))),
         child: Column(
@@ -374,13 +487,13 @@ class ColorModal extends HookWidget {
                       color: color.state == 'light'
                           ? colorPrimary
                           : color.state == 'dark'
-                              ? Color(0xFF8D949F)
+                              ? Color(0xFFA7A9AC)
                               : Colors.black,
                     ),
                     title: new Text("Light Mode",
                         style: TextStyle(
                             color: color.state == 'dark'
-                                ? Color(0xFF8D949F)
+                                ? Color(0xFFA7A9AC)
                                 : Colors.black)),
                     onTap: () {
                       changeColor('light');
@@ -394,13 +507,13 @@ class ColorModal extends HookWidget {
                       color: color.state == 'dark'
                           ? colorPrimary
                           : color.state == 'dark'
-                              ? Color(0xFF8D949F)
+                              ? Color(0xFFA7A9AC)
                               : Colors.black,
                     ),
                     title: new Text("Dark Mode",
                         style: TextStyle(
                             color: color.state == 'dark'
-                                ? Color(0xFF8D949F)
+                                ? Color(0xFFA7A9AC)
                                 : Colors.black)),
                     onTap: () {
                       changeColor('dark');
@@ -440,7 +553,7 @@ class EachMenu extends HookWidget {
                     width: 1,
                     color: this.bordered
                         ? color.state == 'dark'
-                            ? primaryDark.withOpacity(0.2)
+                            ? primaryDark.withOpacity(0.1)
                             : Color(0xFFEDEDED).withOpacity(0.7)
                         : Colors.transparent))),
         child: Row(
@@ -451,13 +564,13 @@ class EachMenu extends HookWidget {
               style: TextStyle(
                   fontSize: 16,
                   color: color.state == 'dark'
-                      ? Color(0xFF8D949F)
+                      ? Color(0xFFA7A9AC)
                       : Color(0xFF282828)),
             )),
             SvgPicture.asset(
               iconsPath + "cheveron-right.svg",
               color:
-                  color.state == 'dark' ? Color(0xFF8D949F) : Color(0xFF282828),
+                  color.state == 'dark' ? Color(0xFFA7A9AC) : Color(0xFF282828),
               width: 20,
             )
           ],

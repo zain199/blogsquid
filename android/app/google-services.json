@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "249986811278",
+    "project_id": "blogsquid",
+    "storage_bucket": "blogsquid.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:249986811278:android:8bf0d9b35a8d572d6b90df",
+        "android_client_info": {
+          "package_name": "org.durabyte.blogsquid"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "249986811278-ufv13tls5nrttfuf7oemdio4gvvahcn2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCtL9_Wgg-xiKhbsdYm9BQ4OE3sTNEDvHk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "249986811278-ufv13tls5nrttfuf7oemdio4gvvahcn2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

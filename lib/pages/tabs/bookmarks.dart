@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:blogsquid/components/empty_error.dart';
 import 'package:blogsquid/config/app.dart';
 import 'package:blogsquid/pages/posts/each_post.dart';
-import 'package:blogsquid/utils/providers.dart';
+import 'package:blogsquid/utils/Providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -87,7 +87,7 @@ class Bookmarks extends HookWidget {
     }, const []);
     return Scaffold(
       body: Container(
-        color: color.state == 'dark' ? primaryDark : Colors.white,
+        color: color.state == 'dark' ? primaryDark : primaryBg,
         padding: EdgeInsets.only(top: 50),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -133,13 +133,13 @@ class Bookmarks extends HookWidget {
                                             cat['id'].toString()
                                         ? colorPrimary
                                         : color.state == 'dark'
-                                            ? Color(0xFF8D949F)
+                                            ? Color(0xFFE9E9E9)
                                             : Colors.black,
                                   ),
                                   title: new Text(cat['name'].toString(),
                                       style: TextStyle(
                                           color: color.state == 'dark'
-                                              ? Color(0xFF8D949F)
+                                              ? Color(0xFFE9E9E9)
                                               : Colors.black)),
                                   onTap: () {
                                     filter.value = {
@@ -161,7 +161,7 @@ class Bookmarks extends HookWidget {
                       decoration: BoxDecoration(
                           border: Border.all(
                               color: color.state == 'dark'
-                                  ? Color(0xFF8D949F)
+                                  ? Color(0xFFE9E9E9)
                                   : Colors.black),
                           borderRadius: BorderRadius.circular(15)),
                       child: Row(
@@ -170,13 +170,13 @@ class Bookmarks extends HookWidget {
                               style: TextStyle(
                                   fontSize: 14,
                                   color: color.state == 'dark'
-                                      ? Color(0xFF8D949F)
+                                      ? Color(0xFFE9E9E9)
                                       : Colors.black)),
                           SizedBox(width: 10),
                           SvgPicture.asset(
                             iconsPath + "cheveron-down.svg",
                             color: color.state == 'dark'
-                                ? Color(0xFF8D949F)
+                                ? Color(0xFFE9E9E9)
                                 : Colors.black,
                             width: 15,
                           )

@@ -9,3 +9,4 @@ final colorProvider = StateProvider<String>((ref) => 'light');
 final accountProvider = StateProvider<Map>((ref) => {});
 final dataSavingModeProvider = StateProvider<bool>((ref) => false);
 final offlineModeProvider = StateProvider<bool>((ref) => false);
+final userTokenProvider = StateProvider<String>((ref) => '');

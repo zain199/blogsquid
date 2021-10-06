@@ -1,6 +1,7 @@
 import 'dart:convert';
 
-import 'package:blogsquid/utils/providers.dart';
+import 'package:blogsquid/onboarding.dart';
+import 'package:blogsquid/utils/Providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -21,6 +22,8 @@ class Prepare extends HookWidget {
     final color = useProvider(colorProvider);
     final dataMode = useProvider(dataSavingModeProvider);
     final offlineMode = useProvider(offlineModeProvider);
+    final boarded = useState('no');
+
     startSequence() async {
       await Hive.initFlutter();
       var box = await Hive.openBox('appBox');
@@ -51,11 +54,19 @@ class Prepare extends HookWidget {
         offlineMode.state = box.get('offline_mode');
       }
 
+      if (box.get('boarded') != null) {
+        boarded.value = await box.get('boarded');
+      }
       await Future.delayed(Duration(seconds: 2));
-
-      Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => Dashboard()),
-          (Route<dynamic> route) => false);
+      if (boarded.value == 'no') {
+        Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => Onboarding()),
+            (Route<dynamic> route) => false);
+      } else {
+        Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => Dashboard()),
+            (Route<dynamic> route) => false);
+      }
     }
 
     useEffect(() {

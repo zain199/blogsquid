@@ -9,7 +9,7 @@ import 'package:blogsquid/pages/categories/category_detail.dart';
 import 'package:blogsquid/pages/posts/each_post.dart';
 import 'package:blogsquid/pages/posts/load_post.dart';
 import 'package:blogsquid/utils/network.dart';
-import 'package:blogsquid/utils/providers.dart';
+import 'package:blogsquid/utils/Providers.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -22,17 +22,11 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
+import 'package:sticky_headers/sticky_headers.dart';
 
 import '../post_detail.dart';
 
-final List<String> imgList = [
-  'https://images.unsplash.com/photo-1520342868574-5fa3804e551c?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=6ff92caffcdd63681a35134a6770ed3b&auto=format&fit=crop&w=1951&q=80',
-  'https://images.unsplash.com/photo-1522205408450-add114ad53fe?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=368f45b0888aeb0b7b08e3a1084d3ede&auto=format&fit=crop&w=1950&q=80',
-  'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=94a1e718d89ca60a6337a6008341ca50&auto=format&fit=crop&w=1950&q=80',
-  'https://images.unsplash.com/photo-1523205771623-e0faa4d2813d?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=89719a0d55dd05e2deae4120227e6efc&auto=format&fit=crop&w=1953&q=80',
-  'https://images.unsplash.com/photo-1508704019882-f9cf40e475b4?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=8c6e5e3aba713b17aa1fe71ab4f0ae5b&auto=format&fit=crop&w=1352&q=80',
-  'https://images.unsplash.com/photo-1519985176271-adb1088fa94c?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=a0c8d632e977f94e5d312d9893258f59&auto=format&fit=crop&w=1355&q=80'
-];
+final List<String> imgList = ['', '', '', '', '', ''];
 
 class Home extends HookWidget {
   @override
@@ -235,7 +229,7 @@ class Home extends HookWidget {
                           builder: (context) => PostDetail(post: post)))
                 },
                 child: Container(
-                  margin: EdgeInsets.all(5.0),
+                  margin: EdgeInsets.symmetric(horizontal: 20),
                   child: ClipRRect(
                       borderRadius: BorderRadius.all(Radius.circular(5.0)),
                       child: Stack(
@@ -280,15 +274,29 @@ class Home extends HookWidget {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    Jiffy(post['date'], "yyyy-MM-dd").fromNow(),
-                                    style: TextStyle(color: Color(0xFFC7C7C7)),
+                                  Container(
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 5),
+                                    decoration: BoxDecoration(
+                                        color:
+                                            Color(0xFFF9F7F7).withOpacity(0.9),
+                                        borderRadius:
+                                            BorderRadius.circular(20)),
+                                    child: Text(
+                                      Jiffy(post['date'], "yyyy-MM-dd")
+                                          .fromNow(),
+                                      style: TextStyle(
+                                          color: colorPrimary,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold),
+                                    ),
                                   ),
-                                  SizedBox(height: 6),
+                                  SizedBox(height: 10),
                                   Text(
                                     post['title']['rendered'].replaceAll(
                                         RegExp(r'<[^>]*>|&[^;]+;'), ''),
                                     overflow: TextOverflow.ellipsis,
+                                    maxLines: 2,
                                     style: TextStyle(
                                       color: Colors.white,
                                       fontSize: 20.0,
@@ -313,7 +321,7 @@ class Home extends HookWidget {
 
     return Scaffold(
       body: Container(
-        color: color.state == 'dark' ? primaryDark : Colors.white,
+        color: color.state == 'dark' ? primaryDark : primaryBg,
         padding: EdgeInsets.only(top: 40),
         child: Container(
           child: Column(
@@ -345,7 +353,7 @@ class Home extends HookWidget {
                                             margin: EdgeInsets.only(right: 10),
                                             decoration: BoxDecoration(
                                                 color: color.state == 'dark'
-                                                    ? Color(0xFF8D949F)
+                                                    ? Color(0xFFE9E9E9)
                                                     : eachPostBg,
                                                 borderRadius:
                                                     BorderRadius.circular(10)),
@@ -356,7 +364,7 @@ class Home extends HookWidget {
                                             margin: EdgeInsets.only(right: 10),
                                             decoration: BoxDecoration(
                                                 color: color.state == 'dark'
-                                                    ? Color(0xFF8D949F)
+                                                    ? Color(0xFFE9E9E9)
                                                     : eachPostBg,
                                                 borderRadius:
                                                     BorderRadius.circular(10)),
@@ -367,7 +375,7 @@ class Home extends HookWidget {
                                             margin: EdgeInsets.only(right: 10),
                                             decoration: BoxDecoration(
                                                 color: color.state == 'dark'
-                                                    ? Color(0xFF8D949F)
+                                                    ? Color(0xFFE9E9E9)
                                                     : eachPostBg,
                                                 borderRadius:
                                                     BorderRadius.circular(10)),
@@ -378,7 +386,7 @@ class Home extends HookWidget {
                                             margin: EdgeInsets.only(right: 10),
                                             decoration: BoxDecoration(
                                                 color: color.state == 'dark'
-                                                    ? Color(0xFF8D949F)
+                                                    ? Color(0xFFE9E9E9)
                                                     : eachPostBg,
                                                 borderRadius:
                                                     BorderRadius.circular(10)),
@@ -415,7 +423,7 @@ class Home extends HookWidget {
                                                           color: color.state ==
                                                                   'dark'
                                                               ? Color(
-                                                                  0xFF8D949F)
+                                                                  0xFFA19E9C)
                                                               : primaryText),
                                                     ),
                                                   ),
@@ -434,10 +442,10 @@ class Home extends HookWidget {
                                     colors: [
                                       color.state == 'dark'
                                           ? primaryDark.withOpacity(0.6)
-                                          : Colors.white.withOpacity(0.6),
+                                          : Color(0xFFF9F7F7).withOpacity(0.6),
                                       color.state == 'dark'
                                           ? primaryDark
-                                          : Colors.white
+                                          : Color(0xFFF9F7F7)
                                     ],
                                     begin: Alignment.centerLeft,
                                     end: Alignment.centerRight,
@@ -492,8 +500,9 @@ class Home extends HookWidget {
                                                 carouselController: _controller,
                                                 options: CarouselOptions(
                                                     autoPlay: true,
-                                                    enlargeCenterPage: true,
-                                                    aspectRatio: 2.0,
+                                                    //enlargeCenterPage: true,
+                                                    aspectRatio: 1.8,
+                                                    viewportFraction: 1,
                                                     onPageChanged:
                                                         (index, reason) {
                                                       _current.value = index;
@@ -532,7 +541,7 @@ class Home extends HookWidget {
                                                                       ? Color(
                                                                           0xFFFFFFFF)
                                                                       : Color(
-                                                                          0xFF585858),
+                                                                          0xFFE0E5EE),
                                                               width: 1.5),
                                                           //shape: BoxShape.circle,
                                                           borderRadius:
@@ -542,226 +551,235 @@ class Home extends HookWidget {
                                                                       .value ==
                                                                   entry.key
                                                               ? colorPrimary
-                                                              : Colors
-                                                                  .transparent),
+                                                              : Color(
+                                                                  0xFFF3F3F3)),
                                                     ),
                                                   );
                                                 }).toList(),
                                               ),
                                             ])),
-                                            Container(
-                                              margin: EdgeInsets.only(
-                                                  top: 30, bottom: 20),
-                                              padding: EdgeInsets.symmetric(
-                                                  horizontal: 20),
-                                              child: Row(
-                                                children: [
-                                                  Expanded(
-                                                    child: Text(
-                                                        "${filter.value['name']}",
-                                                        style: TextStyle(
-                                                            color: color.state ==
-                                                                    'dark'
-                                                                ? Color(
-                                                                    0xFFE9E9E9)
-                                                                : Colors.black,
-                                                            fontSize: 18,
-                                                            fontWeight:
-                                                                FontWeight
-                                                                    .w500)),
-                                                  ),
-                                                  InkWell(
-                                                    onTap: loading.value ||
-                                                            loadingMore.value
-                                                        ? null
-                                                        : () =>
-                                                            showMaterialModalBottomSheet(
-                                                              backgroundColor:
-                                                                  Colors
-                                                                      .transparent,
-                                                              barrierColor: Colors
-                                                                  .black
-                                                                  .withOpacity(
-                                                                      color.state ==
-                                                                              'dark'
-                                                                          ? 0.8
-                                                                          : 0.5),
-                                                              context: context,
-                                                              builder: (context) =>
-                                                                  SingleChildScrollView(
-                                                                controller:
-                                                                    ModalScrollController.of(
-                                                                        context),
-                                                                child:
-                                                                    Container(
-                                                                  decoration: BoxDecoration(
-                                                                      color: color.state ==
-                                                                              'dark'
-                                                                          ? primaryDark
-                                                                          : Colors
-                                                                              .white,
-                                                                      borderRadius: BorderRadius.only(
-                                                                          topLeft: Radius.circular(
-                                                                              5),
-                                                                          topRight:
-                                                                              Radius.circular(5))),
-                                                                  child: Column(
-                                                                    mainAxisSize:
-                                                                        MainAxisSize
-                                                                            .min,
-                                                                    children: <
-                                                                        Widget>[
-                                                                      ListTile(
-                                                                        leading:
-                                                                            new Icon(
-                                                                          filter.value['id'] == 0
-                                                                              ? Icons.check_circle
-                                                                              : Icons.radio_button_unchecked,
-                                                                          color: filter.value['id'] == 0
-                                                                              ? colorPrimary
-                                                                              : color.state == 'dark'
-                                                                                  ? Color(0xFF8D949F)
-                                                                                  : Colors.black,
+                                            StickyHeader(
+                                              header: Container(
+                                                color: color.state == 'dark'
+                                                    ? primaryDark
+                                                    : primaryBg,
+                                                padding: EdgeInsets.only(
+                                                    left: 20,
+                                                    right: 20,
+                                                    top: 30,
+                                                    bottom: 20),
+                                                child: Row(
+                                                  children: [
+                                                    Expanded(
+                                                      child: Text(
+                                                          "${filter.value['name']}",
+                                                          style: TextStyle(
+                                                              color: color.state ==
+                                                                      'dark'
+                                                                  ? Color(
+                                                                      0xFFE9E9E9)
+                                                                  : Colors
+                                                                      .black,
+                                                              fontSize: 18,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w500)),
+                                                    ),
+                                                    InkWell(
+                                                      onTap: loading.value ||
+                                                              loadingMore.value
+                                                          ? null
+                                                          : () =>
+                                                              showMaterialModalBottomSheet(
+                                                                backgroundColor:
+                                                                    Colors
+                                                                        .transparent,
+                                                                barrierColor: Colors
+                                                                    .black
+                                                                    .withOpacity(color.state ==
+                                                                            'dark'
+                                                                        ? 0.8
+                                                                        : 0.5),
+                                                                context:
+                                                                    context,
+                                                                builder:
+                                                                    (context) =>
+                                                                        SingleChildScrollView(
+                                                                  controller:
+                                                                      ModalScrollController.of(
+                                                                          context),
+                                                                  child:
+                                                                      Container(
+                                                                    decoration: BoxDecoration(
+                                                                        color: color.state ==
+                                                                                'dark'
+                                                                            ? primaryDark
+                                                                            : Colors
+                                                                                .white,
+                                                                        borderRadius: BorderRadius.only(
+                                                                            topLeft:
+                                                                                Radius.circular(5),
+                                                                            topRight: Radius.circular(5))),
+                                                                    child:
+                                                                        Column(
+                                                                      mainAxisSize:
+                                                                          MainAxisSize
+                                                                              .min,
+                                                                      children: <
+                                                                          Widget>[
+                                                                        ListTile(
+                                                                          leading:
+                                                                              new Icon(
+                                                                            filter.value['id'] == 0
+                                                                                ? Icons.check_circle
+                                                                                : Icons.radio_button_unchecked,
+                                                                            color: filter.value['id'] == 0
+                                                                                ? colorPrimary
+                                                                                : color.state == 'dark'
+                                                                                    ? Color(0xFFE9E9E9)
+                                                                                    : Colors.black,
+                                                                          ),
+                                                                          title: new Text(
+                                                                              'Latest',
+                                                                              style: TextStyle(color: color.state == 'dark' ? Color(0xFFE9E9E9) : Colors.black)),
+                                                                          onTap:
+                                                                              () {
+                                                                            filter.value =
+                                                                                {
+                                                                              "id": 0,
+                                                                              "name": "Latest",
+                                                                            };
+                                                                            Navigator.pop(context);
+                                                                            getPosts();
+                                                                          },
                                                                         ),
-                                                                        title: new Text(
-                                                                            'Latest',
-                                                                            style:
-                                                                                TextStyle(color: color.state == 'dark' ? Color(0xFF8D949F) : Colors.black)),
-                                                                        onTap:
-                                                                            () {
-                                                                          filter.value =
-                                                                              {
-                                                                            "id":
-                                                                                0,
-                                                                            "name":
-                                                                                "Latest",
-                                                                          };
-                                                                          Navigator.pop(
-                                                                              context);
-                                                                          getPosts();
-                                                                        },
-                                                                      ),
-                                                                      ...categories
-                                                                          .state
-                                                                          .map((cat) =>
-                                                                              ListTile(
-                                                                                leading: new Icon(
-                                                                                  filter.value['id'] == cat['id'] ? Icons.check_circle : Icons.radio_button_unchecked,
-                                                                                  color: filter.value['id'] == cat['id']
-                                                                                      ? colorPrimary
-                                                                                      : color.state == 'dark'
-                                                                                          ? Color(0xFF8D949F)
-                                                                                          : Colors.black,
-                                                                                ),
-                                                                                title: new Text(cat['name'], style: TextStyle(color: color.state == 'dark' ? Color(0xFF8D949F) : Colors.black)),
-                                                                                onTap: () {
-                                                                                  filter.value = {
-                                                                                    "id": cat['id'],
-                                                                                    "name": cat['name'],
-                                                                                  };
-                                                                                  Navigator.pop(context);
-                                                                                  getPosts();
-                                                                                },
-                                                                              ))
-                                                                    ],
+                                                                        ...categories
+                                                                            .state
+                                                                            .map((cat) =>
+                                                                                ListTile(
+                                                                                  leading: new Icon(
+                                                                                    filter.value['id'] == cat['id'] ? Icons.check_circle : Icons.radio_button_unchecked,
+                                                                                    color: filter.value['id'] == cat['id']
+                                                                                        ? colorPrimary
+                                                                                        : color.state == 'dark'
+                                                                                            ? Color(0xFFE9E9E9)
+                                                                                            : Colors.black,
+                                                                                  ),
+                                                                                  title: new Text(cat['name'], style: TextStyle(color: color.state == 'dark' ? Color(0xFFE9E9E9) : Colors.black)),
+                                                                                  onTap: () {
+                                                                                    filter.value = {
+                                                                                      "id": cat['id'],
+                                                                                      "name": cat['name'],
+                                                                                    };
+                                                                                    Navigator.pop(context);
+                                                                                    getPosts();
+                                                                                  },
+                                                                                ))
+                                                                      ],
+                                                                    ),
                                                                   ),
                                                                 ),
                                                               ),
-                                                            ),
-                                                    child: Container(
-                                                        padding: EdgeInsets
-                                                            .symmetric(
-                                                                horizontal: 15,
-                                                                vertical: 5),
-                                                        decoration: BoxDecoration(
-                                                            border: Border.all(
-                                                                color: loading.value || loadingMore.value
-                                                                    ? color.state == 'dark'
-                                                                        ? Color(0xFF8D949F).withOpacity(0.5)
-                                                                        : Colors.black12
-                                                                    : color.state == 'dark'
-                                                                        ? Color(0xFF8D949F)
-                                                                        : Colors.black),
-                                                            borderRadius: BorderRadius.circular(15)),
-                                                        child: Row(
-                                                          children: [
-                                                            Text(
-                                                                loading.value ||
+                                                      child: Container(
+                                                          padding: EdgeInsets
+                                                              .symmetric(
+                                                                  horizontal:
+                                                                      15,
+                                                                  vertical: 5),
+                                                          decoration: BoxDecoration(
+                                                              color: color
+                                                                          .state ==
+                                                                      'dark'
+                                                                  ? Color(0xFFEEEEEE)
+                                                                      .withOpacity(
+                                                                          0.08)
+                                                                  : Color(
+                                                                      0xFFEEEEEE),
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          15)),
+                                                          child: Row(
+                                                            children: [
+                                                              Text(
+                                                                  loading.value ||
+                                                                          loadingMore
+                                                                              .value
+                                                                      ? "Loading..."
+                                                                      : filter
+                                                                          .value[
+                                                                              'name']
+                                                                          .toString(),
+                                                                  style: TextStyle(
+                                                                      fontSize: 14,
+                                                                      color: loading.value
+                                                                          ? color.state == 'dark'
+                                                                              ? Color(0xFFE9E9E9).withOpacity(0.5)
+                                                                              : Colors.black38
+                                                                          : color.state == 'dark'
+                                                                              ? Color(0xFFE9E9E9)
+                                                                              : Colors.black)),
+                                                              SizedBox(
+                                                                  width: 10),
+                                                              SvgPicture.asset(
+                                                                iconsPath +
+                                                                    "cheveron-down.svg",
+                                                                color: loading
+                                                                            .value ||
                                                                         loadingMore
                                                                             .value
-                                                                    ? "Loading..."
-                                                                    : filter
-                                                                        .value[
-                                                                            'name']
-                                                                        .toString(),
-                                                                style: TextStyle(
-                                                                    fontSize: 14,
-                                                                    color: loading.value
-                                                                        ? color.state == 'dark'
-                                                                            ? Color(0xFF8D949F).withOpacity(0.5)
-                                                                            : Colors.black38
-                                                                        : color.state == 'dark'
-                                                                            ? Color(0xFF8D949F)
-                                                                            : Colors.black)),
-                                                            SizedBox(width: 10),
-                                                            SvgPicture.asset(
-                                                              iconsPath +
-                                                                  "cheveron-down.svg",
-                                                              color: loading
-                                                                          .value ||
-                                                                      loadingMore
-                                                                          .value
-                                                                  ? color.state ==
-                                                                          'dark'
-                                                                      ? Color(0xFF8D949F)
-                                                                          .withOpacity(
-                                                                              0.5)
-                                                                      : Colors
-                                                                          .black12
-                                                                  : color.state ==
-                                                                          'dark'
-                                                                      ? Color(
-                                                                          0xFF8D949F)
-                                                                      : Colors
-                                                                          .black,
-                                                              width: 15,
-                                                            )
-                                                          ],
-                                                        )),
-                                                  ),
-                                                ],
+                                                                    ? color.state ==
+                                                                            'dark'
+                                                                        ? Color(0xFFE9E9E9).withOpacity(
+                                                                            0.5)
+                                                                        : Colors
+                                                                            .black12
+                                                                    : color.state ==
+                                                                            'dark'
+                                                                        ? Color(
+                                                                            0xFFE9E9E9)
+                                                                        : Colors
+                                                                            .black,
+                                                                width: 15,
+                                                              )
+                                                            ],
+                                                          )),
+                                                    ),
+                                                  ],
+                                                ),
                                               ),
+                                              content: Column(children: [
+                                                ...posts.state
+                                                    .asMap()
+                                                    .entries
+                                                    .map((post) => EachPost(
+                                                        background: post.key %
+                                                                    2 ==
+                                                                0
+                                                            ? (color.state ==
+                                                                    'dark'
+                                                                ? eachPostBgDark
+                                                                : eachPostBg)
+                                                            : (color.state ==
+                                                                    'dark'
+                                                                ? eachPostBgLowDark
+                                                                : eachPostBgLow),
+                                                        post: post.value))
+                                                    .toList(),
+                                                loadingMore.value
+                                                    ? Container(
+                                                        margin: EdgeInsets.only(
+                                                            top: 10,
+                                                            bottom: 20),
+                                                        child:
+                                                            SpinKitRotatingCircle(
+                                                          color: colorPrimary,
+                                                          size: 30.0,
+                                                        ),
+                                                      )
+                                                    : SizedBox()
+                                              ]),
                                             ),
-                                            Column(children: [
-                                              ...posts.state
-                                                  .asMap()
-                                                  .entries
-                                                  .map((post) => EachPost(
-                                                      background: post.key %
-                                                                  2 ==
-                                                              0
-                                                          ? (color.state ==
-                                                                  'dark'
-                                                              ? eachPostBgDark
-                                                              : eachPostBg)
-                                                          : (color.state ==
-                                                                  'dark'
-                                                              ? eachPostBgLowDark
-                                                              : eachPostBgLow),
-                                                      post: post.value))
-                                                  .toList(),
-                                              loadingMore.value
-                                                  ? Container(
-                                                      margin: EdgeInsets.only(
-                                                          top: 10, bottom: 20),
-                                                      child:
-                                                          SpinKitRotatingCircle(
-                                                        color: colorPrimary,
-                                                        size: 30.0,
-                                                      ),
-                                                    )
-                                                  : SizedBox()
-                                            ])
                                           ],
                                         ),
                                       ),

@@ -5,7 +5,7 @@ import 'package:blogsquid/components/network_error.dart';
 import 'package:blogsquid/config/app.dart';
 import 'package:blogsquid/pages/categories/category_detail.dart';
 import 'package:blogsquid/utils/network.dart';
-import 'package:blogsquid/utils/providers.dart';
+import 'package:blogsquid/utils/Providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -52,7 +52,7 @@ class Categories extends HookWidget {
     }, const []);
     return Scaffold(
       body: Container(
-        color: color.state == 'dark' ? primaryDark : Colors.white,
+        color: color.state == 'dark' ? primaryDark : primaryBg,
         padding: EdgeInsets.only(top: 50, left: 20, right: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -90,8 +90,8 @@ class Categories extends HookWidget {
                                   margin: EdgeInsets.only(bottom: 20),
                                   decoration: BoxDecoration(
                                       color: color.state == 'dark'
-                                          ? eachPostBgDark
-                                          : Color(0xFFF8F8F8),
+                                          ? Color(0xFF282828)
+                                          : Color(0xFFF3F3F3),
                                       borderRadius: BorderRadius.circular(4)),
                                   child: Column(
                                       children: categories.state
@@ -143,9 +143,9 @@ class EachCategory extends HookWidget {
                 bottom: BorderSide(
                     width: 1,
                     color: this.bordered
-                        ?  color.state == 'dark'
-                      ? primaryDark.withOpacity(0.2)
-                      : Color(0xFFEDEDED).withOpacity(0.7)
+                        ? color.state == 'dark'
+                            ? primaryDark.withOpacity(0.1)
+                            : Color(0xFFEDEDED).withOpacity(0.7)
                         : Colors.transparent))),
         child: Row(
           children: [
@@ -155,14 +155,13 @@ class EachCategory extends HookWidget {
               style: TextStyle(
                   fontSize: 18,
                   color: color.state == 'dark'
-                      ? Color(0xFF8D949F)
+                      ? Color(0xFFA7A9AC)
                       : Color(0xFF282828)),
             )),
             SvgPicture.asset(
               iconsPath + "cheveron-right.svg",
-              color: color.state == 'dark'
-                      ? Color(0xFF8D949F)
-                      : Color(0xFF282828),
+              color:
+                  color.state == 'dark' ? Color(0xFFA7A9AC) : Color(0xFF282828),
               width: 20,
             )
           ],
