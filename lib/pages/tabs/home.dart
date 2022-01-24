@@ -6,11 +6,13 @@ import 'package:blogsquid/components/network_error.dart';
 import 'package:blogsquid/config/app.dart';
 import 'package:blogsquid/config/modules.dart';
 import 'package:blogsquid/pages/categories/category_detail.dart';
+import 'package:blogsquid/pages/categories/subCategories.dart';
 import 'package:blogsquid/pages/posts/each_post.dart';
 import 'package:blogsquid/pages/posts/load_post.dart';
 import 'package:blogsquid/utils/network.dart';
 import 'package:blogsquid/utils/Providers.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -46,10 +48,7 @@ class Home extends HookWidget {
     final isLoadMoreDone = useState(false);
     final page = useState(1);
     bool largeScreen = MediaQuery.of(context).size.width > 800 ? true : false;
-    final filter = useState({
-      "id": 0,
-      "name": "Latest",
-    });
+    final filter = useState({"id": 0, "name": "Latest",});
 
     Future<void> setupNotification() async {
       //Remove this method to stop OneSignal Debugging
@@ -105,7 +104,7 @@ class Home extends HookWidget {
 
     void getCategories() async {
       try {
-        var response = await Network().simpleGet("/categories?per_page=20");
+        var response = await Network().simpleGet("/categories?parent=0");
         var body = json.decode(response.body);
         if (response.statusCode == 200) {
           categories.state = body;
@@ -414,9 +413,8 @@ class Home extends HookWidget {
                                                         context,
                                                         MaterialPageRoute(
                                                             builder: (context) =>
-                                                                CategoryDetail(
-                                                                    category:
-                                                                        category))),
+                                                                SubCategories(
+                                                                        category['id']))),
                                                     child: Text(
                                                       category['name'],
                                                       style: TextStyle(
@@ -627,54 +625,33 @@ class Home extends HookWidget {
                                                                               .min,
                                                                       children: <
                                                                           Widget>[
-                                                                        ListTile(
-                                                                          leading:
-                                                                              new Icon(
-                                                                            filter.value['id'] == 0
-                                                                                ? Icons.check_circle
-                                                                                : Icons.radio_button_unchecked,
-                                                                            color: filter.value['id'] == 0
-                                                                                ? colorPrimary
-                                                                                : color.state == 'dark'
-                                                                                    ? Color(0xFFE9E9E9)
-                                                                                    : Colors.black,
-                                                                          ),
-                                                                          title: new Text(
-                                                                              'Latest',
-                                                                              style: TextStyle(color: color.state == 'dark' ? Color(0xFFE9E9E9) : Colors.black)),
+                                                                        //*************************************************************latest*********\\
+
+                                                                        InkWell(
                                                                           onTap:
                                                                               () {
-                                                                            filter.value =
-                                                                                {
-                                                                              "id": 0,
-                                                                              "name": "Latest",
-                                                                            };
-                                                                            Navigator.pop(context);
-                                                                            getPosts();
-                                                                          },
+                                                                            if(filter.value['name'].toString()=='Latest')
+                                                                                filter.value['name']='Oldest';
+                                                                              else
+                                                                                  filter.value['name']='Latest';
+                                                                            posts.state=posts.state.reversed.toList();
+                                                                            Navigator.of(context).pop();
+                                                                              },
+                                                                          child:
+                                                                              Container(
+                                                                                width: double.infinity,
+                                                                            padding:
+                                                                                EdgeInsets.symmetric(vertical: 20,
+                                                                            ),
+                                                                            child:
+                                                                                Center(
+                                                                                  child: Text(
+                                                                              filter.value['name'].toString()=='Latest'?'Oldest':'Latest',
+                                                                              style: Theme.of(context).textTheme.subtitle1,
+                                                                            ),
+                                                                                ),
+                                                                          ),
                                                                         ),
-                                                                        ...categories
-                                                                            .state
-                                                                            .map((cat) =>
-                                                                                ListTile(
-                                                                                  leading: new Icon(
-                                                                                    filter.value['id'] == cat['id'] ? Icons.check_circle : Icons.radio_button_unchecked,
-                                                                                    color: filter.value['id'] == cat['id']
-                                                                                        ? colorPrimary
-                                                                                        : color.state == 'dark'
-                                                                                            ? Color(0xFFE9E9E9)
-                                                                                            : Colors.black,
-                                                                                  ),
-                                                                                  title: new Text(cat['name'], style: TextStyle(color: color.state == 'dark' ? Color(0xFFE9E9E9) : Colors.black)),
-                                                                                  onTap: () {
-                                                                                    filter.value = {
-                                                                                      "id": cat['id'],
-                                                                                      "name": cat['name'],
-                                                                                    };
-                                                                                    Navigator.pop(context);
-                                                                                    getPosts();
-                                                                                  },
-                                                                                ))
                                                                       ],
                                                                     ),
                                                                   ),

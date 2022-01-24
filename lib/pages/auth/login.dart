@@ -254,7 +254,7 @@ class Login extends HookWidget {
                   ),
                   SizedBox(width: 10),
                   InkWell(
-                    onTap: () => Navigator.push(
+                    onTap: () => Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
                           builder: (context) => CreateAccount(anchor: anchor)),

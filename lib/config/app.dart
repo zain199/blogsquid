@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-const appDomain = "https://blog-squid.durabyte.org";
+const appDomain = "https://chinblog.com/";
 
 
 const iconsPath = "assets/icons/";

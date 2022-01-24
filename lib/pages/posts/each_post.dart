@@ -21,6 +21,8 @@ class EachPost extends HookWidget {
   Widget build(BuildContext context) {
     final dataMode = useProvider(dataSavingModeProvider);
     final color = useProvider(colorProvider);
+
+    print('hello omar'+post.toString());
     return InkWell(
       onTap: () => {
         Navigator.push(context,
