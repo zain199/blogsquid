@@ -17,6 +17,7 @@ class CategoryDetail extends HookWidget {
   const CategoryDetail({Key? key, required this.category}) : super(key: key);
   @override
   Widget build(BuildContext context) {
+
     final color = useProvider(colorProvider);
     final loading = useState(true);
     final loadingError = useState(true);
@@ -80,12 +81,12 @@ class CategoryDetail extends HookWidget {
     useEffect(() {
       loadData();
     }, const []);
-
+    print('hello omar'+ category.toString());
     return Scaffold(
       body: Container(
         color: color.state == 'dark' ? primaryDark : primaryBg,
         padding: EdgeInsets.only(top: 50),
-        child: Column(
+        child:Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
@@ -123,77 +124,77 @@ class CategoryDetail extends HookWidget {
             SizedBox(height: 20),
             loading.value && detailposts.value.length == 0
                 ? Container(
-                    margin: EdgeInsets.only(
-                        top: (MediaQuery.of(context).size.height / 3) - 20),
-                    child: SpinKitFadingCube(
-                      color: colorPrimary,
-                      size: 30.0,
-                    ),
-                  )
+              margin: EdgeInsets.only(
+                  top: (MediaQuery.of(context).size.height / 3) - 20),
+              child: SpinKitFadingCube(
+                color: colorPrimary,
+                size: 30.0,
+              ),
+            )
                 : loadingError.value && detailposts.value.length == 0
-                    ? Expanded(
-                        child: Center(
-                          child: NetworkError(
-                              loadData: loadData, message: "Network error,"),
-                        ),
-                      )
-                    : detailposts.value.length > 0
-                        ? Expanded(
-                            child: RefreshIndicator(
-                              onRefresh: () async {
-                                if (!loading.value) loadData();
-                              },
-                              child: NotificationListener<ScrollNotification>(
-                                onNotification:
-                                    (ScrollNotification scrollInfo) {
-                                  if (scrollInfo.metrics.pixels ==
-                                      scrollInfo.metrics.maxScrollExtent) {
-                                    if (!isLoadMoreDone.value &&
-                                        !loadingMore.value) {
-                                      loadMore();
-                                    }
-                                  }
-                                  return false;
-                                },
-                                child: SingleChildScrollView(
-                                  child: Column(
-                                    children: [
-                                      ...detailposts.value
-                                          .asMap()
-                                          .entries
-                                          .map((post) => EachPost(
-                                              background: post.key % 2 == 0
-                                                  ? (color.state == 'dark'
-                                                      ? eachPostBgDark
-                                                      : eachPostBg)
-                                                  : (color.state == 'dark'
-                                                      ? eachPostBgLowDark
-                                                      : eachPostBgLow),
-                                              post: post.value))
-                                          .toList(),
-                                      loadingMore.value
-                                          ? Container(
-                                              margin: EdgeInsets.only(
-                                                  top: 10, bottom: 20),
-                                              child: SpinKitRotatingCircle(
-                                                color: colorPrimary,
-                                                size: 30.0,
-                                              ),
-                                            )
-                                          : SizedBox()
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          )
-                        : Expanded(
-                            child: Center(
-                              child: EmptyError(
-                                  loadData: loadData,
-                                  message: "No post found,"),
-                            ),
+                ? Expanded(
+              child: Center(
+                child: NetworkError(
+                    loadData: loadData, message: "Network error,"),
+              ),
+            )
+                : detailposts.value.length > 0
+                ? Expanded(
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  if (!loading.value) loadData();
+                },
+                child: NotificationListener<ScrollNotification>(
+                  onNotification:
+                      (ScrollNotification scrollInfo) {
+                    if (scrollInfo.metrics.pixels ==
+                        scrollInfo.metrics.maxScrollExtent) {
+                      if (!isLoadMoreDone.value &&
+                          !loadingMore.value) {
+                        loadMore();
+                      }
+                    }
+                    return false;
+                  },
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        ...detailposts.value
+                            .asMap()
+                            .entries
+                            .map((post) => EachPost(
+                            background: post.key % 2 == 0
+                                ? (color.state == 'dark'
+                                ? eachPostBgDark
+                                : eachPostBg)
+                                : (color.state == 'dark'
+                                ? eachPostBgLowDark
+                                : eachPostBgLow),
+                            post: post.value))
+                            .toList(),
+                        loadingMore.value
+                            ? Container(
+                          margin: EdgeInsets.only(
+                              top: 10, bottom: 20),
+                          child: SpinKitRotatingCircle(
+                            color: colorPrimary,
+                            size: 30.0,
                           ),
+                        )
+                            : SizedBox()
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            )
+                : Expanded(
+              child: Center(
+                child: EmptyError(
+                    loadData: loadData,
+                    message: "No post found,"),
+              ),
+            ),
           ],
         ),
       ),

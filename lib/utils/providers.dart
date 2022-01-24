@@ -4,6 +4,7 @@ final postsProvider = StateProvider<List>((ref) => []);
 final latestpostsProvider = StateProvider<List>((ref) => []);
 final bookmarksProvider = StateProvider<List>((ref) => []);
 final categoryProvider = StateProvider<List>((ref) => []);
+final subCategoryProvider = StateProvider<List>((ref) => []);
 final pagesProvider = StateProvider<List>((ref) => []);
 final colorProvider = StateProvider<String>((ref) => 'light');
 final accountProvider = StateProvider<Map>((ref) => {});

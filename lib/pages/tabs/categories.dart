@@ -4,6 +4,7 @@ import 'package:blogsquid/components/empty_error.dart';
 import 'package:blogsquid/components/network_error.dart';
 import 'package:blogsquid/config/app.dart';
 import 'package:blogsquid/pages/categories/category_detail.dart';
+import 'package:blogsquid/pages/categories/subCategories.dart';
 import 'package:blogsquid/utils/network.dart';
 import 'package:blogsquid/utils/Providers.dart';
 import 'package:flutter/material.dart';
@@ -30,7 +31,7 @@ class Categories extends HookWidget {
         isLoadMoreDone.value = false;
         page.value = 1;
         var response = await Network()
-            .simpleGet("/categories?per_page=20&page=" + page.value.toString());
+            .simpleGet("/categories?parent=0");
         var body = json.decode(response.body);
         loading.value = false;
         if (response.statusCode == 200) {
@@ -50,6 +51,8 @@ class Categories extends HookWidget {
     useEffect(() {
       getCategories();
     }, const []);
+
+    print('hello omar categories'+categories.state.toString());
     return Scaffold(
       body: Container(
         color: color.state == 'dark' ? primaryDark : primaryBg,
@@ -135,7 +138,9 @@ class EachCategory extends HookWidget {
       onTap: () => Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => CategoryDetail(category: category))),
+              builder: (context) {
+                return SubCategories(category['id'] , category['name']);
+              } )),
       child: Container(
         padding: EdgeInsets.only(top: 20, bottom: 20, right: 20),
         decoration: BoxDecoration(

@@ -85,6 +85,7 @@ class Bookmarks extends HookWidget {
     useEffect(() {
       loadData();
     }, const []);
+
     return Scaffold(
       body: Container(
         color: color.state == 'dark' ? primaryDark : primaryBg,
