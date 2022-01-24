@@ -30,8 +30,13 @@ class MyApp extends HookWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         fontFamily: "Circular",
-        primarySwatch: Colors.blue,
+        scaffoldBackgroundColor: Colors.white,
       ),
+      darkTheme: ThemeData(
+        scaffoldBackgroundColor: Colors.black,
+        fontFamily: "Circular",
+      ),
+
 
       /// navigatorKey: globals.appNavigator,
       home: Prepare(),

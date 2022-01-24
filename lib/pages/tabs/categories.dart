@@ -138,7 +138,9 @@ class EachCategory extends HookWidget {
       onTap: () => Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => SubCategories(category['id']))),
+              builder: (context) {
+                return SubCategories(category['id'] , category['name']);
+              } )),
       child: Container(
         padding: EdgeInsets.only(top: 20, bottom: 20, right: 20),
         decoration: BoxDecoration(

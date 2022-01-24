@@ -15,7 +15,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 class SubCategories extends HookWidget {
   final int id ;
-  SubCategories(this.id);
+  final String name;
+  SubCategories(this.id ,this.name);
   @override
   Widget build(BuildContext context) {
     final subCategories = useProvider(subCategoryProvider);
@@ -61,13 +62,21 @@ class SubCategories extends HookWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("SubCategories",
-                style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                    color: color.state == 'dark'
-                        ? Color(0xFFE9E9E9)
-                        : Colors.black)),
+
+            Row(
+              children: [
+                IconButton(onPressed: (){Navigator.pop(context);},
+                    icon: Icon(Icons.arrow_back , size: 20,)),
+
+                Text(name,
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                        color: color.state == 'dark'
+                            ? Color(0xFFE9E9E9)
+                            : Colors.black)),
+              ],
+            ),
             SizedBox(height: 20),
             loading.value && subCategories.state.length == 0
                 ? Container(

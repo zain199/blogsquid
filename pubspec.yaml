@@ -47,12 +47,14 @@ dependencies:
   fluttertoast: ^8.0.8
   flutter_tts: ^3.2.2
   email_validator: ^2.0.1
-  onesignal_flutter: ^3.2.0
+  onesignal_flutter: ^3.2.7
   google_mobile_ads: ^0.13.3
   url_launcher: ^6.0.9
   sticky_headers: ^0.2.0
   flutter_styled_toast: ^2.0.0
   flutter_math_fork: 0.4.2+2
+  persistent_bottom_nav_bar: ^4.0.2
+
 
 dev_dependencies:
   flutter_test:

@@ -48,7 +48,10 @@ class Home extends HookWidget {
     final isLoadMoreDone = useState(false);
     final page = useState(1);
     bool largeScreen = MediaQuery.of(context).size.width > 800 ? true : false;
-    final filter = useState({"id": 0, "name": "Latest",});
+    final filter = useState({
+      "id": 0,
+      "name": "Latest",
+    });
 
     Future<void> setupNotification() async {
       //Remove this method to stop OneSignal Debugging
@@ -414,7 +417,10 @@ class Home extends HookWidget {
                                                         MaterialPageRoute(
                                                             builder: (context) =>
                                                                 SubCategories(
-                                                                        category['id']))),
+                                                                    category[
+                                                                        'id'],
+                                                                    category[
+                                                                        'name']))),
                                                     child: Text(
                                                       category['name'],
                                                       style: TextStyle(
@@ -630,26 +636,30 @@ class Home extends HookWidget {
                                                                         InkWell(
                                                                           onTap:
                                                                               () {
-                                                                            if(filter.value['name'].toString()=='Latest')
-                                                                                filter.value['name']='Oldest';
-                                                                              else
-                                                                                  filter.value['name']='Latest';
-                                                                            posts.state=posts.state.reversed.toList();
+                                                                            if (filter.value['name'].toString() ==
+                                                                                'Latest')
+                                                                              filter.value['name'] = 'Oldest';
+                                                                            else
+                                                                              filter.value['name'] = 'Latest';
+                                                                            posts.state =
+                                                                                posts.state.reversed.toList();
                                                                             Navigator.of(context).pop();
-                                                                              },
-                                                                          child:
-                                                                              Container(
-                                                                                width: double.infinity,
+                                                                          },
+                                                                          child: Container(
+                                                                            width:
+                                                                                double.infinity,
                                                                             padding:
-                                                                                EdgeInsets.symmetric(vertical: 20,
+                                                                                EdgeInsets.symmetric(
+                                                                              vertical: 20,
                                                                             ),
                                                                             child:
-                                                                                Center(
-                                                                                  child: Text(
-                                                                              filter.value['name'].toString()=='Latest'?'Oldest':'Latest',
-                                                                              style: Theme.of(context).textTheme.subtitle1,
+                                                                                Text(
+                                                                              filter.value['name'].toString() == 'Latest' ? 'Oldest' : 'Latest',
+                                                                              style: TextStyle(
+                                                                                color: color.state == 'dark' ? darkModeText : primaryDark,
+                                                                              ),
+                                                                              textAlign: TextAlign.center,
                                                                             ),
-                                                                                ),
                                                                           ),
                                                                         ),
                                                                       ],
